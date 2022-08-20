@@ -8,32 +8,37 @@ int main(int argc, char *argv[]) {
     printf("Initializing board...\n");
     FILE *standard_setup_file = fopen("../assets/standard_setup", "r");
     char standard_setup[100];
-    fce_board *board = make_fce_board();
+    struct bitboard *board = make_bitboard();
     init_fce_board(board);
     printf("Printing board...\n");
     print_fce_board(board);
 }
 
-fce_board *make_fce_board() {
-    fce_board *board = calloc(1, sizeof(fce_board));
-    return board;
-}
-void init_fce_board(fce_board *board) {
-    for(int i = 0; i < 8; i++) {
-        for(int j = 0; j < 8; j++) {
-            switch(j) {
-                case 1:
-                board->field[i][j].type = pawn;
-                board->field[i][j].color = white;
-                case 6:
-                board->field[i][j].type = pawn;
-                board->field[i][j].color = black;
-            }
-        }
-    }
+void fce_error(const char *message) {
+    printf("%s\n", message);
+    exit(1);
 }
 
-void print_fce_board(fce_board *board) {
+struct bitboard *make_bitboard() {
+    struct bitboard *board = calloc(1, sizeof(struct bitboard));
+    if (board == NULL) {
+        fce_error("Couldn't create board");
+    }
+    return board;
+}
+void init_fce_board(struct bitboard *board) {
+    board->board[PAWN_BB] = second_rank | seventh_rank;
+    board->board[KING_BB] = (first_rank | eighth_rank) & (e_file);
+    board->board[QUEEN_BB] = (first_rank | eighth_rank) & (d_file);
+    board->board[BISHOP_BB] = (first_rank | eighth_rank) & (c_file | f_file);
+    board->board[KNIGHT_BB] = (first_rank | eighth_rank) & (b_file | g_file);
+    board->board[ROOK_BB] = (first_rank | eighth_rank) & (a_file | h_file);
+    board->board[WHITE_BB]= first_rank | second_rank;
+    board->board[BLACK_BB] = seventh_rank | eighth_rank;
+
+}
+
+void print_fce_board(struct bitboard *board) {
     for(char i = 0; i < 8; i++) {
         for(char j = 0; j < 8; j++) {
             printf("%c", get_symbol(board->field[i][j].type));
