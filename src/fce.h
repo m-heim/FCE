@@ -3,11 +3,14 @@
 #include "stdint.h"
 #include <cstdint>
 #include <stdint.h>
-#define QUEEN_WORTH = 9
-#define ROOK_WORTH = 5
-#define PAWN_WORTH = 1
-#define BISHOP_WORTH = 3
-#define KNIGHT_WORTH = 3
+#define QUEEN_WORTH 9
+#define ROOK_WORTH 5
+#define PAWN_WORTH 1
+#define BISHOP_WORTH 3
+#define KNIGHT_WORTH 3
+#define BOARD_SIZE_88  64
+#define BOARD_COLS 8
+#define BOARD_ROWS 8
 
 const uint64_t a_file = 0x0101010101010101;
 const uint64_t b_file = a_file << 1;
@@ -56,10 +59,31 @@ struct bitboard {
     uint64_t board[8];
 };
 
+enum token {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+};
+
+struct square {
+    enum token token;
+    enum color color;
+};
+
+struct board {
+    struct square squares[8][8];
+    int64_t eval;
+};
+
 void fce_error(const char *message);
 
 struct bitboard *make_bitboard();
+struct board *board_make();
 void print_fce_board(struct bitboard);
-void init_fce_board(struct bitboard *board);
+void init_bitboard(struct bitboard *board);
+void board_init(struct board *board);
 struct bitboard *move_piece();
 #endif

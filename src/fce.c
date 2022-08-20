@@ -26,7 +26,16 @@ struct bitboard *make_bitboard() {
     }
     return board;
 }
-void init_fce_board(struct bitboard *board) {
+
+struct board *board_make() {
+    struct board *board = calloc(1, sizeof(struct board));
+    if (board == NULL) {
+        fce_error("Couldn't create board");
+    }
+    return board;
+}
+
+void init_bitboard(struct bitboard *board) {
     board->board[PAWN_BB] = second_rank | seventh_rank;
     board->board[KING_BB] = (first_rank | eighth_rank) & (e_file);
     board->board[QUEEN_BB] = (first_rank | eighth_rank) & (d_file);
@@ -36,6 +45,14 @@ void init_fce_board(struct bitboard *board) {
     board->board[WHITE_BB]= first_rank | second_rank;
     board->board[BLACK_BB] = seventh_rank | eighth_rank;
 
+}
+
+void init_board(struct board *board) {
+    for (int i = 0; i < BOARD_ROWS; i++) {
+        for (int j = 0; j < BOARD_COLS; j++) {
+            
+        }
+    }
 }
 
 void print_fce_board(struct bitboard *board) {
