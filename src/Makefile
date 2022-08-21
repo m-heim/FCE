@@ -1,2 +1,2 @@
 fce: fce.c fce.h
-	gcc -o fce fce.c
+	gcc -g -o fce fce.c
