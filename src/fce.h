@@ -1,6 +1,7 @@
 #ifndef FCE_H
 #define FCE_H
 #include "stdint.h"
+#include <cstdint>
 #include <stdint.h>
 #include <stdbool.h>
 #define QUEEN_WORTH 9
@@ -27,11 +28,11 @@ enum token {
 };
 
 struct move {
-    struct square *start;
-    struct square *dest;
+    uint8_t from;
+    uint8_t to;
 };
 
-struct square {
+struct figure {
     enum token token;
     enum color color;
     int rows;
@@ -39,15 +40,17 @@ struct square {
 };
 
 struct state {
-    struct square *squares[8][8];
-    struct square tokens[32];
-    int64_t eval;
+    // all the quares of the board, pointer to the corresponding piece/square
+    uint8_t board[64];
+    // store pieces in a list which makes move generation and searching for specific pieces easier
+    struct figure figures[32];
+    int16_t eval;
     enum color side;
     bool white_queenside_castle;
     bool white_kingside_castle;
     bool black_kingside_castle;
     bool black_queenside_castle;
-    int move;
+    uint16_t move;
     int moves_since_capture_or_pawn;
     struct square *en_passant;
 };
