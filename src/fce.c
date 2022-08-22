@@ -23,9 +23,6 @@ void fce_error(const char *message) {
     exit(1);
 }
 
-struct 
-
-
 struct state *state_make() {
     struct state *state = calloc(1, sizeof(struct state));
     if (state == NULL) {
