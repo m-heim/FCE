@@ -1,8 +1,6 @@
 #ifndef FCE_H
 #define FCE_H
 #include "stdint.h"
-#include <cstdint>
-#include <stdint.h>
 #include <stdbool.h>
 #define QUEEN_WORTH 9
 #define ROOK_WORTH 5
@@ -12,6 +10,10 @@
 #define BOARD_SIZE_88  64
 #define BOARD_COLS 8
 #define BOARD_ROWS 8
+#define BOARD_SIZE 64
+#define FIGURE_LIST_FIGURE_COUNT 6
+#define FIGURE_LIST_ARRAY_LENGTH 16
+#define NO_FIELD 255
 
 enum color{
     WHITE = 0,
@@ -19,12 +21,13 @@ enum color{
 };
 
 enum token {
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING
+    PAWN = 0,
+    KNIGHT = 1,
+    BISHOP = 2,
+    ROOK = 3,
+    QUEEN = 4,
+    KING = 5,
+    NO_PIECE = 6
 };
 
 struct move {
@@ -35,15 +38,18 @@ struct move {
 struct figure {
     enum token token;
     enum color color;
-    int rows;
-    int cols;
+};
+
+struct figure_list {
+    uint8_t figures[FIGURE_LIST_ARRAY_LENGTH];
+    uint8_t length;
 };
 
 struct state {
     // all the quares of the board, pointer to the corresponding piece/square
-    uint8_t board[64];
+    struct figure board[BOARD_SIZE];
     // store pieces in a list which makes move generation and searching for specific pieces easier
-    struct figure figures[32];
+    struct figure_list figure_lists[FIGURE_LIST_FIGURE_COUNT];
     int16_t eval;
     enum color side;
     bool white_queenside_castle;
@@ -51,18 +57,17 @@ struct state {
     bool black_kingside_castle;
     bool black_queenside_castle;
     uint16_t move;
-    int moves_since_capture_or_pawn;
-    struct square *en_passant;
+    uint16_t moves_since_capture_or_pawn;
+    uint8_t en_passant;
 };
 
 void fce_error(const char *message);
 
-struct state *state_make();
-void print_fce_board(struct state *state);
+void state_print_all_data(struct state *state);
 void state_init(struct state *state);
-struct state *move_piece();
-void read_fen_save_to_state(const char* fen, struct state* state);
-char get_symbol(enum token token);
+void state_read_insert_fen(const char* fen, struct state* state);
+void state_print_board_data(struct state*state);
+char get_symbol(enum token token, enum color side);
 char *get_bool(bool vals);
 char get_rows(int rows);
 char get_cols(int cols);
