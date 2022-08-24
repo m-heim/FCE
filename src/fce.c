@@ -26,8 +26,9 @@ void fce_error(const char *message) {
 }
 
 void state_init(struct state *state) {
-    for (int i = 0; i < FIGURE_LIST_FIGURE_COUNT; i++) {
-        state->figure_lists[i].length = 0;
+    for (int i = 0; i < FIGURE_COUNT; i++) {
+        state->figure_lists[WHITE][i].length = 0;
+        state->figure_lists[BLACK][i].length = 0;
     }
     for (int i = 0; i < BOARD_SIZE; i++) {
         state->board[i].token = NO_PIECE;
@@ -40,13 +41,26 @@ void state_init(struct state *state) {
     state_read_insert_fen("../assets/start.fen", state);
 }
 
-void state_generate_all_moves()
+void state_generate_all_moves(struct moves *moves, struct state* state, enum color side) {
+    struct figure_list *lists = state->figure_lists[side];
+    for(int i = 0; i < lists[PAWN].length; i++) {
+        if (state->board[lists[PAWN].figures[i] + 8].token == NO_PIECE) {
+            
+        }
+    }
+}
+
+void moves_append(struct moves *moves, uint8_t from, uint8_t to) {
+    moves->from[moves->length] = from;
+    moves->to[moves->length] = to;
+    moves->length++;
+}
 
 void state_insert_figure(struct state *state, enum token figure, enum color side, uint8_t position) {
     state->board[position].color = side;
     state->board[position].token = figure;
-    state->figure_lists[figure].figures[state->figure_lists[figure].length] = position;
-    state->figure_lists[figure].length++;
+    state->figure_lists[side][figure].figures[state->figure_lists[side][figure].length] = position;
+    state->figure_lists[side][figure].length++;
 }
 
 void state_read_insert_fen(const char* fen, struct state* state) {

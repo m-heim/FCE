@@ -11,9 +11,11 @@
 #define BOARD_COLS 8
 #define BOARD_ROWS 8
 #define BOARD_SIZE 64
-#define FIGURE_LIST_FIGURE_COUNT 6
-#define FIGURE_LIST_ARRAY_LENGTH 16
+#define COLOR_COUNT 2
+#define FIGURE_COUNT 6
+#define FIGURE_LIST_ARRAY_LENGTH 10
 #define NO_FIELD 255
+#define MOVE_COUNT 400
 
 enum color{
     WHITE = 0,
@@ -30,9 +32,10 @@ enum token {
     NO_PIECE = 6
 };
 
-struct move {
-    uint8_t from;
-    uint8_t to;
+struct moves {
+    uint8_t from[MOVE_COUNT];
+    uint8_t to[MOVE_COUNT];
+    uint16_t length;
 };
 
 struct figure {
@@ -49,7 +52,7 @@ struct state {
     // all the quares of the board, pointer to the corresponding piece/square
     struct figure board[BOARD_SIZE];
     // store pieces in a list which makes move generation and searching for specific pieces easier
-    struct figure_list figure_lists[FIGURE_LIST_FIGURE_COUNT];
+    struct figure_list figure_lists[COLOR_COUNT][FIGURE_COUNT];
     int16_t eval;
     enum color side;
     bool white_queenside_castle;
