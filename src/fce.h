@@ -75,4 +75,5 @@ char *get_bool(bool vals);
 char get_rows(int rows);
 char get_cols(int cols);
 char *get_color(enum color color);
+void moves_append(struct moves *moves, uint8_t from, uint8_t to);
 #endif
