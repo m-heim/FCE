@@ -44,8 +44,43 @@ void state_init(struct state *state) {
 void state_generate_all_moves(struct moves *moves, struct state* state, enum color side) {
     struct figure_list *lists = state->figure_lists[side];
     for(int i = 0; i < lists[PAWN].length; i++) {
-        if (state->board[lists[PAWN].figures[i] + 8].token == NO_PIECE) {
-            
+        uint8_t field = lists[PAWN].figures[i];
+        // normal move
+        if (state->board[field + 8].token == NO_PIECE) {
+            moves_append(moves, field, field + 8);
+        // sidewards capture
+        } else if (state->board[field + 7].color != side && state->board[field + 7].token != NO_PIECE) {
+            moves_append(moves, field, field + 7);
+        } else if (state->board[field + 9].color != side && state->board[field + 8].token != NO_PIECE) {
+            moves_append(moves, field, field + 9);
+        // en passant
+        } else if (field+7 == state->en_passant || field + 9 == state->en_passant) {
+            moves_append(moves, field, state->en_passant);
+        // double step
+        } else if (side == WHITE && field >= 8 && field < 16 && state->board[field+8].token != NO_PIECE && state->board[field+16].token != NO_PIECE) {
+            moves_append(moves, field, field + 16);
+        } else if (side == BLACK && field < 56 && field >= 48 && state->board[field-8].token != NO_PIECE && state->board[field-16].token != NO_PIECE) {
+            moves_append(moves, field, field + 16);
+        }
+    }
+    for(int i = 0; i < lists[KNIGHT].length; i++) {
+        int8_t knight_moves[8] = {-21, -19, -12, -8, 8, 12, 19, 21};
+        int8_t field = (int) lists[KNIGHT].figures[i];
+        for (int j = 0; j < 8; j++) {
+            int8_t to = field + knight_moves[j];
+            if ((to >= 0 && to < 64 && state->board[to].token == NO_PIECE) || (to >= 0 && to < 64 && state->board[to].color != side)) {
+                moves_append(moves, field, to);
+            }
+        }
+    }
+    for(int i = 0; i < lists[BISHOP].length; i++) {
+        int8_t bishop_moves[8] = {-21, -19, -12, -8, 8, 12, 19, 21};
+        int8_t field = (int) lists[KNIGHT].figures[i];
+        for (int j = 0; j < 8; j++) {
+            int8_t to = field + knight_moves[j];
+            if ((to >= 0 && to < 64 && state->board[to].token == NO_PIECE) || (to >= 0 && to < 64 && state->board[to].color != side)) {
+                moves_append(moves, field, to);
+            }
         }
     }
 }
@@ -54,6 +89,18 @@ void moves_append(struct moves *moves, uint8_t from, uint8_t to) {
     moves->from[moves->length] = from;
     moves->to[moves->length] = to;
     moves->length++;
+}
+
+bool state_is_king_checked(struct state *state, enum color side) {
+    uint8_t king_position = state->figure_lists[side][KING].figures[0];
+    struct moves moves;
+    state_generate_all_moves(&moves, state, side);
+    for (int i = 0; i < moves.length; i++) {
+        if(moves.to[i] == king_position) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void state_insert_figure(struct state *state, enum token figure, enum color side, uint8_t position) {
