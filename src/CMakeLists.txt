@@ -1,1 +1,1 @@
-add_executable(fce fce.c)
+add_executable(fce fce.cpp)
