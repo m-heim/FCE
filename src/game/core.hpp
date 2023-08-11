@@ -2,7 +2,8 @@
 enum Color {
     WHITE,
     BLACK,
-    COLOR_COUNT
+    COLOR_COUNT,
+    NO_COLOR
 };
 
 enum Piece {
@@ -14,4 +15,13 @@ enum Piece {
     QUEEN,
     KING,
     PIECE_COUNT
+};
+
+char piece_to_char(Piece piece);
+
+enum Castle {
+    QUEENSIDE,
+    KINGSIDE,
+    CASTLE_COUNT,
+    NO_CASTLE
 };

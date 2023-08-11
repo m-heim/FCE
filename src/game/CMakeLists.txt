@@ -1,2 +1,2 @@
-add_library(game INTERFACE)
-target_include_directories(game INTERFACE .)
+add_library(game board.cpp fen.cpp util.cpp core.cpp)
+target_include_directories(game PUBLIC .)
