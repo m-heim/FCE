@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <game.hpp>
+#include <position.hpp>
 #include <util.hpp>
 #include <fen.hpp>
 #include <util.hpp>
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     std::string fen(fen_size, '\0');
     fen_file_stream.seekg(0);
     fen_file_stream.read(&fen[0], fen_size);
-    Game game = parse_fen(fen);
-    std::cout << game.board.stringify_board() << std::endl;
+    Position position = parse_fen(fen);
+    std::cout << position.stringify_board() << std::endl;
     return 0;
 }

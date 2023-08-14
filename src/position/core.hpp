@@ -7,14 +7,14 @@ enum Color {
 };
 
 enum Piece {
-    NO_PIECE,
     PAWN,
     KNIGHT,
     BISHOP,
     ROOK,
     QUEEN,
     KING,
-    PIECE_COUNT
+    PIECE_COUNT,
+    NO_PIECE
 };
 
 char piece_to_char(Piece piece);
