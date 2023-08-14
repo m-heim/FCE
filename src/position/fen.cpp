@@ -1,6 +1,7 @@
 #include "fen.hpp"
 #include "position.hpp"
 #include "util.hpp"
+#include "core.hpp"
 #include <string.h>
 
 Position parse_fen(std::string fen) {
@@ -25,24 +26,21 @@ Position parse_fen(std::string fen) {
   std::string move = fen.substr(start, next - start);
 
   Position position;
-  int row = 0;
-  int col = 0;
 
-  for (int i = 0; i < RANKS; i++) {
-    for (int j = 0; j < FILES; j++) {
-      position.set_square(Position::square_to_index(i, j), Color::NO_COLOR,
+  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
+      position.set_square(square, Color::NO_COLOR,
                           Piece::NO_PIECE);
-    }
   }
+
+  SquareIndex square;
   for (char c : board) {
     if (c == '/') {
-      row++;
-      col = 0;
+      square += 8 - (square % 8);
       continue;
     }
     if (c >= '0' && c <= '9') {
       int n = c - '1';
-      col += n;
+      square += n;
       continue;
     } else {
       Piece piece;
@@ -62,8 +60,8 @@ Position parse_fen(std::string fen) {
         fce_error("Could\'t read fen position", 1);
       }
       Color color = (c >= 'A' && c <= 'Z') ? Color::BLACK : Color::WHITE;
-      position.set_square(Position::square_to_index(row, col), color, piece);
-      col++;
+      position.set_square(square, color, piece);
+      square++;
     }
   }
   if (side == "w") {
@@ -95,10 +93,10 @@ Position parse_fen(std::string fen) {
   }
 
   if (en_passant[0] == '-') {
-    position.en_passant = no_square_index;
+    position.en_passant = SQUARE_NONE;
   } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' &&
              en_passant[1] >= '1' && en_passant[1] <= '8') {
-    position.en_passant = (en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
+    position.en_passant = (SquareIndex) (en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
   } else {
     fce_error("Couldn\'t read fen enpassant", 1);
   }

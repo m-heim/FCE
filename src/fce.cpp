@@ -19,7 +19,10 @@ int main(int argc, char **argv) {
   std::string fen(fen_size, '\0');
   fen_file_stream.seekg(0);
   fen_file_stream.read(&fen[0], fen_size);
+  fen_file_stream.close();
+
   Position position = parse_fen(fen);
+  
   std::cout << position.stringify_board() << std::endl;
   return 0;
 }

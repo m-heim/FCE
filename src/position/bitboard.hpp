@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "core.hpp"
 
 typedef uint64_t Bitboard;
 
@@ -38,3 +39,6 @@ constexpr Bitboard notRank5 = ~rank5;
 constexpr Bitboard notRank6 = ~rank6;
 constexpr Bitboard notRank7 = ~rank7;
 constexpr Bitboard notRank8 = ~rank8;
+
+extern Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
+extern Bitboard knightAttacks[Square::SQUARE_COUNT];
