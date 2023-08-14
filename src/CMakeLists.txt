@@ -1,4 +1,5 @@
 add_compile_options(-Wall -Wextra -Wpedantic)
+set (CMAKE_CXX_STANDARD 20)
 add_subdirectory(position)
 
 add_executable(fce fce.cpp)

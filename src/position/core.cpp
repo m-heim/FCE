@@ -1,5 +1,8 @@
 #include "core.hpp"
+#include "bitboard.hpp"
+#include <cstdint>
 #include <iostream>
+#include <strings.h>
 
 char piece_to_char(Piece piece) {
   if (piece == Piece::PAWN) {
@@ -21,4 +24,8 @@ char piece_to_char(Piece piece) {
               << std::endl;
     exit(1);
   }
+}
+
+uint8_t get_ls1b_index(Bitboard bitboard) {
+  return ffsll(bitboard);
 }

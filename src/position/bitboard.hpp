@@ -2,8 +2,6 @@
 #include "core.hpp"
 #include <cstdint>
 
-typedef uint64_t Bitboard;
-
 constexpr Bitboard fileA = 0x0101010101010101;
 constexpr Bitboard fileB = fileA << 1;
 constexpr Bitboard fileC = fileB << 1;

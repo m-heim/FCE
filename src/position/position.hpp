@@ -12,6 +12,7 @@ public:
   std::array<SquareInfo, Square::SQUARE_COUNT> board;
   std::array<std::array<Bitboard, Piece::PIECE_COUNT>, Color::COLOR_COUNT>
       bitboards;
+  std::array<Bitboard, Color::COLOR_COUNT> occupation;
   Color to_move;
   SquareIndex en_passant;
   uint16_t plies;
@@ -22,6 +23,9 @@ public:
   void set_square(SquareIndex square, Color color, Piece piece);
   std::string stringify_board();
   double evaluate(void);
-  std::vector<move> generateMoves(void);
-  std::vector<move> generarePawnMoves(Color side);
+  template<Color side>
+  std::vector<move> generatePawnMoves();
+  template<Color side>
+  std::vector<move> generateMoves();
+  void makeMoves();
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+typedef uint64_t Bitboard;
+
 enum Color { WHITE, BLACK, COLOR_COUNT, NO_COLOR };
 
 enum Piece { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, PIECE_COUNT, NO_PIECE };
@@ -8,6 +10,14 @@ enum Piece { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, PIECE_COUNT, NO_PIECE };
 char piece_to_char(Piece piece);
 
 enum Castle { QUEENSIDE, KINGSIDE, CASTLE_COUNT, NO_CASTLE };
+
+enum Promotion {
+  NO_PROMOTION = 0,
+  QUEEN_PROMOTION = 1,
+  ROOK_PROMOTION = 2,
+  BISHOP_PROMOTION = 3,
+  KNIGHT_PROMOTION = 4
+};
 
 typedef std::int8_t Offset;
 
@@ -95,9 +105,15 @@ enum Square : SquareIndex {
 typedef std::uint16_t move;
 constexpr move no_move = 65;
 
+inline move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
+  return to | from << 6 | flags << 12;
+}
+
 class SquareInfo {
 public:
   Color color;
   Piece piece;
   SquareInfo();
 };
+
+uint8_t get_ls1b_index(Bitboard bitboard);
