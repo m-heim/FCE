@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
 #include "core.hpp"
+#include <cstdint>
 
 typedef uint64_t Bitboard;
 

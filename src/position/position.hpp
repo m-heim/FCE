@@ -6,7 +6,6 @@
 #include <iostream>
 #include <vector>
 
-
 class Position {
 public:
   // BOARD REPRESENTATIONS

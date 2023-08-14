@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   fen_file_stream.close();
 
   Position position = parse_fen(fen);
-  
+
   std::cout << position.stringify_board() << std::endl;
   return 0;
 }

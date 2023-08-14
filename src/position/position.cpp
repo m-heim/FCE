@@ -2,7 +2,8 @@
 #include "core.hpp"
 #include <iostream>
 
-void Position::set_square(SquareIndex squareVal, Color colorVal, Piece pieceVal) {
+void Position::set_square(SquareIndex squareVal, Color colorVal,
+                          Piece pieceVal) {
   board[squareVal].color = colorVal;
   board[squareVal].piece = pieceVal;
   bitboards[colorVal][pieceVal] |= 1ULL << squareVal;
@@ -10,14 +11,15 @@ void Position::set_square(SquareIndex squareVal, Color colorVal, Piece pieceVal)
 
 std::string Position::stringify_board() {
   std::string ret;
-  for (SquareIndex square = Square::SQUARE_A1; square < Square::SQUARE_H8; square++) {
+  for (SquareIndex square = Square::SQUARE_A1; square < Square::SQUARE_H8;
+       square++) {
     char piece = piece_to_char(board[square].piece);
     if (Color::BLACK && piece != ' ') {
-        piece += 'A' - 'a';
+      piece += 'A' - 'a';
     }
     ret.push_back(piece);
     if (square % 8 == 0) {
-        ret.push_back('\n');
+      ret.push_back('\n');
     }
   }
   return ret;

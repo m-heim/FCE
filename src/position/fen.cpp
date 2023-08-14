@@ -1,7 +1,7 @@
 #include "fen.hpp"
+#include "core.hpp"
 #include "position.hpp"
 #include "util.hpp"
-#include "core.hpp"
 #include <string.h>
 
 Position parse_fen(std::string fen) {
@@ -27,9 +27,9 @@ Position parse_fen(std::string fen) {
 
   Position position;
 
-  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-      position.set_square(square, Color::NO_COLOR,
-                          Piece::NO_PIECE);
+  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
+       square++) {
+    position.set_square(square, Color::NO_COLOR, Piece::NO_PIECE);
   }
 
   SquareIndex square;
@@ -96,7 +96,8 @@ Position parse_fen(std::string fen) {
     position.en_passant = SQUARE_NONE;
   } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' &&
              en_passant[1] >= '1' && en_passant[1] <= '8') {
-    position.en_passant = (SquareIndex) (en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
+    position.en_passant =
+        (SquareIndex)(en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
   } else {
     fce_error("Couldn\'t read fen enpassant", 1);
   }
