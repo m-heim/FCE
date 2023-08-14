@@ -2,9 +2,9 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <array>
-#include <vector>
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
 #define FILES 8
 #define RANKS 8
@@ -25,8 +25,8 @@ public:
 class Position {
 public:
   std::array<Square, 64> board;
-  std::array<std::array<Bitboard, Piece::PIECE_COUNT>, Color::COLOR_COUNT> bitboards;
-
+  std::array<std::array<Bitboard, Piece::PIECE_COUNT>, Color::COLOR_COUNT>
+      bitboards;
 
   void set_square(uint8_t square, Color color, Piece piece);
   static std::uint8_t square_to_index(std::uint8_t rank, std::uint8_t file);
