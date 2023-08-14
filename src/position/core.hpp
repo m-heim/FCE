@@ -10,6 +10,7 @@ char piece_to_char(Piece piece);
 enum Castle { QUEENSIDE, KINGSIDE, CASTLE_COUNT, NO_CASTLE };
 
 typedef std::int8_t Offset;
+
 enum Direction : Offset {
   SOUTH = -8,
   NORTH = 8,
@@ -19,19 +20,6 @@ enum Direction : Offset {
   SOUTH_EAST = SOUTH + EAST,
   NORTH_EAST = NORTH + EAST,
   NORTH_WEST = NORTH + WEST
-};
-
-enum File { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
-
-enum Rank {
-  RANK_1 = 0,
-  RANK_2 = 8 * 1,
-  RANK_3 = 8 * 2,
-  RANK_4 = 8 * 3,
-  RANK_5 = 8 * 4,
-  RANK_6 = 8 * 5,
-  RANK_7 = 8 * 6,
-  RANK_8 = 8 * 7
 };
 
 typedef std::uint8_t SquareIndex;
@@ -104,13 +92,8 @@ enum Square : SquareIndex {
   SQUARE_NONE
 };
 
-#define FILES 8
-#define RANKS 8
-#define BOARD_SIZE 64
-
 typedef std::uint16_t move;
 constexpr move no_move = 65;
-typedef uint8_t relative_move;
 
 class SquareInfo {
 public:
