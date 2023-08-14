@@ -1,4 +1,4 @@
-add_subdirectory(game)
+add_subdirectory(position)
 
 add_executable(fce fce.cpp)
-target_link_libraries(fce game)
+target_link_libraries(fce position)
