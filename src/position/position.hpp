@@ -28,4 +28,5 @@ public:
   template<Color side>
   std::vector<move> generateMoves();
   void makeMoves();
+  move search();
 };

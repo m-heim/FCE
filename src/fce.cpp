@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
+#include <bitboard.hpp>
 #include <util.hpp>
 
 int main(int argc, char **argv) {
@@ -24,5 +25,7 @@ int main(int argc, char **argv) {
   Position position = parse_fen(fen);
 
   std::cout << position.stringify_board() << std::endl;
+
+  MagicBitboards magics{};
   return 0;
 }

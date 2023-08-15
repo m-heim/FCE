@@ -29,7 +29,15 @@ enum Direction : Offset {
   SOUTH_WEST = SOUTH + WEST,
   SOUTH_EAST = SOUTH + EAST,
   NORTH_EAST = NORTH + EAST,
-  NORTH_WEST = NORTH + WEST
+  NORTH_WEST = NORTH + WEST,
+  SSW = SOUTH + SOUTH + WEST,
+  SSE = SOUTH + SOUTH + EAST,
+  EES = EAST + EAST + SOUTH,
+  EEN = EAST + EAST + NORTH,
+  NNE = NORTH + NORTH + EAST,
+  NNW = NORTH + NORTH + WEST,
+  WWN = WEST + WEST + NORTH,
+  WWS = WEST + WEST + SOUTH
 };
 
 typedef std::uint8_t SquareIndex;

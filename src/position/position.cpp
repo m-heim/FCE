@@ -60,3 +60,7 @@ void Position::makeMoves() {
   }
   return;
 }
+
+move Position::search() {
+
+}

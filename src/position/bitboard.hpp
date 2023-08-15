@@ -38,5 +38,12 @@ constexpr Bitboard notRank6 = ~rank6;
 constexpr Bitboard notRank7 = ~rank7;
 constexpr Bitboard notRank8 = ~rank8;
 
-extern Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
-extern Bitboard knightAttacks[Square::SQUARE_COUNT];
+Bitboard bitboardSetSquare(SquareIndex index);
+
+
+class MagicBitboards {
+    public:
+    Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
+    Bitboard knightAttacks[Square::SQUARE_COUNT];
+    MagicBitboards();
+};
