@@ -32,14 +32,13 @@ Position parse_fen(std::string fen) {
     position.set_square(square, Color::NO_COLOR, Piece::NO_PIECE);
   }
 
-  SquareIndex square;
+  SquareIndex square = Square::SQUARE_A1;
   for (char c : board) {
     if (c == '/') {
-      square += 8 - (square % 8);
       continue;
     }
     if (c >= '0' && c <= '9') {
-      int n = c - '1';
+      int n = c - '0';
       square += n;
       continue;
     } else {
@@ -57,6 +56,7 @@ Position parse_fen(std::string fen) {
       } else if (c == 'p' || c == 'P') {
         piece = PAWN;
       } else {
+        piece = NO_PIECE;
         fce_error("Could\'t read fen position", 1);
       }
       Color color = (c >= 'A' && c <= 'Z') ? Color::BLACK : Color::WHITE;

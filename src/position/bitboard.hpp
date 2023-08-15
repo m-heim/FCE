@@ -39,6 +39,7 @@ constexpr Bitboard notRank7 = ~rank7;
 constexpr Bitboard notRank8 = ~rank8;
 
 Bitboard bitboardSetSquare(SquareIndex index);
+Bitboard getKnightAttacks(Bitboard board);
 
 
 class MagicBitboards {
@@ -47,3 +48,4 @@ class MagicBitboards {
     Bitboard knightAttacks[Square::SQUARE_COUNT];
     MagicBitboards();
 };
+

@@ -27,5 +27,8 @@ int main(int argc, char **argv) {
   std::cout << position.stringify_board() << std::endl;
 
   MagicBitboards magics{};
+  Bitboard test;
+  Bitboard test_init = magics.knightAttacks[Square::SQUARE_D4];
+  // std::cout << test_init << std::endl;
   return 0;
 }
