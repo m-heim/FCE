@@ -1,8 +1,8 @@
+#include <bitboard.hpp>
 #include <fen.hpp>
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
-#include <bitboard.hpp>
 #include <util.hpp>
 #include <vector>
 
@@ -26,15 +26,19 @@ int main(int argc, char **argv) {
   Position position = parse_fen(fen);
 
   std::cout << position.stringify_board() << std::endl;
+  //printBitboard(position.occupation[Color::WHITE]);
+  //printBitboard(position.occupation[Color::BLACK]);
+  //printBitboard(position.bitboards[Color::WHITE][Piece::PAWN]);
 
   MagicBitboards magics{};
-  //printBitboard(position.bitboards[Color::WHITE][Piece::PAWN]);
-  //printBitboard(position.occupation[Color::BLACK]);
-  //printBitboard(magics.pawnAttacks[Color::WHITE][Square::SQUARE_A1]);
 
   std::vector<move> moves = position.generateMoves(magics);
-  //position.makeMove(moves.at(0));
+  // position.makeMove(moves.at(0));
   std::cout << "found" << moves.size() << std::endl;
-  std::cout << position.stringify_board() << std::endl;
+  //std::cout << position.stringify_board() << std::endl;
+  std::vector<Position> positions = makeMoves(position, moves);
+  for (Position new_position_item : positions) {
+    std::cout << new_position_item.stringify_board() << std::endl;
+  }
   return 0;
 }

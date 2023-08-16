@@ -26,7 +26,7 @@ Position parse_fen(std::string fen) {
   std::string move = fen.substr(start, next - start);
 
   Position position;
-
+  
   for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
        square++) {
     position.setSquare(square, Color::NO_COLOR, Piece::NO_PIECE);
@@ -34,6 +34,7 @@ Position parse_fen(std::string fen) {
 
   position.occupation[Color::WHITE] = 0ULL;
   position.occupation[Color::BLACK] = 0ULL;
+  memset(&position.bitboards, 0, sizeof(position.bitboards));
 
   uint8_t row = 7;
   uint8_t col = 0;

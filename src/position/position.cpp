@@ -4,15 +4,22 @@
 #include <iostream>
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal,
-                          Piece pieceVal) {
+                         Piece pieceVal) {
+  Piece piece = board[squareVal].piece;
+  Color color = board[squareVal].color;
   board[squareVal].color = colorVal;
   board[squareVal].piece = pieceVal;
-  if (pieceVal == Piece::NO_PIECE) {
-    occupation[Color::BLACK] ^= 1ULL << squareVal;
-    occupation[Color::WHITE] ^= 1ULL << squareVal;
-  } else {
-    bitboards[colorVal][pieceVal] |= 1ULL << squareVal;
-    occupation[colorVal] |= 1ULL << squareVal;
+  Bitboard mask = bitboardSetSquare(squareVal);
+  bitboards[color][piece] &= ~mask;
+  occupation[color] &= ~mask;
+  bitboards[colorVal][pieceVal] |= mask;
+  occupation[colorVal] |= mask;
+}
+
+Position::Position() {
+  for(SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
+    board[square].color = Color::NO_COLOR;
+    board[square].piece = Piece::NO_PIECE;
   }
 }
 
@@ -39,51 +46,74 @@ SquareInfo::SquareInfo() {}
 double Position::evaluate(void) { return 0.0; }
 
 std::vector<move> Position::generatePawnMoves(MagicBitboards &magics) {
-    std::vector<move> moves;
-    Bitboard pawns = bitboards[to_move][Piece::PAWN];
-    Bitboard pawns_on_7 = pawns & rank7;
-    Bitboard pawns_not_on_7 = pawns & notRank7;
-    while (pawns_not_on_7) {
-        SquareIndex from = get_ls1b_index(pawns_not_on_7);
-        Bitboard attacks = occupation[to_move == Color::BLACK ? Color::WHITE : Color::BLACK] & magics.pawnAttacks[to_move][from];
-        while(attacks) {
-            SquareIndex to = get_ls1b_index(attacks);
-            moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
-            Bitboard mask = ~bitboardSetSquare(to);
-            attacks &= mask;
-        }
-        Bitboard mask = ~bitboardSetSquare(from);
-        pawns_not_on_7 &= mask;
+  std::vector<move> moves;
+  Bitboard pawns = bitboards[to_move][Piece::PAWN];
+  Bitboard pawns_on_7 = pawns & rank7;
+  Bitboard pawns_not_on_7 = pawns & notRank7;
+  while (pawns_not_on_7) {
+    SquareIndex from = get_ls1b_index(pawns_not_on_7);
+    Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
+    Bitboard attacks = occupation[opponent] & magics.pawnAttacks[to_move][from];
+    while (attacks) {
+      SquareIndex to = get_ls1b_index(attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
+      attacks = bitboardUnsetSquare(attacks, to);
     }
-    //while (pawns_on_7) {
-    //  SquareIndex from = get_ls1b_index(pawns_on_7);
-    //  
-    //}
-    return moves;
+    Bitboard pushes = ~(occupation[opponent] | occupation[to_move]) &
+                      (bitboardSetSquare(from) << Direction::NORTH);
+    while (pushes) {
+      SquareIndex to = get_ls1b_index(pushes);
+      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      pushes = bitboardUnsetSquare(pushes, to);
+    }
+    Bitboard mask = ~bitboardSetSquare(from);
+    pawns_not_on_7 &= mask;
+  }
+  // while (pawns_on_7) {
+  //   SquareIndex from = get_ls1b_index(pawns_on_7);
+  //
+  // }
+  return moves;
 }
 
 std::vector<move> Position::generateMoves(MagicBitboards &magics) {
   std::vector<move> result;
-  for(move m : generatePawnMoves(magics)) {
+  for (move m : generatePawnMoves(magics)) {
     result.push_back(m);
   }
   return result;
 }
 
-void Position::makeMove(move m) {
+void makeMove(Position &position, move m) {
   SquareIndex from = moveGetFrom(m);
   SquareIndex to = moveGetTo(m);
   uint8_t flags = moveGetFlags(m);
-  SquareInfo movingPiece = board[from];
+  std::cout << "Making move" << from << to << std::endl;
+  SquareInfo movingPiece = position.board[from];
   if (flags == MoveFlags::QUIET) {
-    setSquare(to, movingPiece.color, movingPiece.piece);
-    setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-    plies_since_capture += 1;
+    std::cout << "Moving" << std::to_string(from) << std::to_string(to) << std::endl;
+    position.setSquare(to, movingPiece.color, movingPiece.piece);
+    position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+    position.plies_since_capture += 1;
+  } else if (flags == MoveFlags::CAPTURE) {
+    position.setSquare(to, movingPiece.color, movingPiece.piece);
+    position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
   }
-  plies += 1;
+  position.plies += 1;
 
   return;
 }
+
+std::vector<Position> makeMoves(Position position, std::vector<move> moves) {
+  std::vector<Position> positions;
+  for (auto m : moves) {
+    Position position_new = position;
+    makeMove(position_new, m);
+    positions.push_back(position_new);
+  }
+  return positions;
+}
+
 
 move Position::search() {
   move bestMove;

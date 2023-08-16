@@ -1,7 +1,7 @@
 #pragma once
 #include "core.hpp"
-#include <string.h>
 #include <cstdint>
+#include <string.h>
 
 constexpr Bitboard fileA = 0x0101010101010101;
 constexpr Bitboard fileB = fileA << 1;
@@ -43,20 +43,19 @@ Bitboard bitboardSetSquare(SquareIndex index);
 Bitboard getKnightAttacks(Bitboard board);
 void printBitboard(Bitboard board);
 
+inline Bitboard bitboardSetSquare(SquareIndex index) { return 1ULL << index; }
 
-inline Bitboard bitboardSetSquare(SquareIndex index) {
-    return 1ULL << index;
+inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
+  return board & ~bitboardSetSquare(index);
 }
 
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
   return ffsll(bitboard) - 1;
 }
 
-
 class MagicBitboards {
-    public:
-    Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
-    Bitboard knightAttacks[Square::SQUARE_COUNT];
-    MagicBitboards();
+public:
+  Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
+  Bitboard knightAttacks[Square::SQUARE_COUNT];
+  MagicBitboards();
 };
-
