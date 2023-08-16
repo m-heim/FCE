@@ -20,13 +20,12 @@ public:
   std::array<std::array<bool, Castle::CASTLE_COUNT>, Color::COLOR_COUNT>
       castle_rights;
 
-  void set_square(SquareIndex square, Color color, Piece piece);
+  void setSquare(SquareIndex square, Color color, Piece piece);
   std::string stringify_board();
   double evaluate(void);
-  template<Color side>
-  std::vector<move> generatePawnMoves();
-  template<Color side>
-  std::vector<move> generateMoves();
-  void makeMoves();
+  void makeMove(move m);
   move search();
+  std::vector<move> generatePawnMoves(MagicBitboards &magics);
+  std::vector<move> generateMoves(MagicBitboards &magics);
 };
+

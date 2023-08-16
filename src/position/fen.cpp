@@ -29,17 +29,23 @@ Position parse_fen(std::string fen) {
 
   for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
        square++) {
-    position.set_square(square, Color::NO_COLOR, Piece::NO_PIECE);
+    position.setSquare(square, Color::NO_COLOR, Piece::NO_PIECE);
   }
 
-  SquareIndex square = Square::SQUARE_A1;
+  position.occupation[Color::WHITE] = 0ULL;
+  position.occupation[Color::BLACK] = 0ULL;
+
+  uint8_t row = 7;
+  uint8_t col = 0;
   for (char c : board) {
     if (c == '/') {
+      row -= 1;
+      col = 0;
       continue;
     }
     if (c >= '0' && c <= '9') {
       int n = c - '0';
-      square += n;
+      col += n;
       continue;
     } else {
       Piece piece;
@@ -59,9 +65,9 @@ Position parse_fen(std::string fen) {
         piece = NO_PIECE;
         fce_error("Could\'t read fen position", 1);
       }
-      Color color = (c >= 'A' && c <= 'Z') ? Color::BLACK : Color::WHITE;
-      position.set_square(square, color, piece);
-      square++;
+      Color color = (c >= 'a' && c <= 'z') ? Color::BLACK : Color::WHITE;
+      position.setSquare(row * 8 + col, color, piece);
+      col++;
     }
   }
   if (side == "w") {

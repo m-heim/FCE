@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#define MOVE_LIMIT_N 218
+
 typedef uint64_t Bitboard;
 
 enum Color { WHITE, BLACK, COLOR_COUNT, NO_COLOR };
@@ -17,6 +19,10 @@ enum Promotion {
   ROOK_PROMOTION = 2,
   BISHOP_PROMOTION = 3,
   KNIGHT_PROMOTION = 4
+};
+
+enum MoveFlags : uint8_t {
+  QUIET, CAPTURE, EN_PASSANT, CASTLE_QUEENSIDE, CASTLE_KINGSIDE, PROMOTE_QUEEN, PROMOTE_ROOK, PROMOTE_BISHOP, PROMOTE_KNIGHT
 };
 
 typedef std::int8_t Offset;
@@ -117,11 +123,19 @@ inline move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
   return to | from << 6 | flags << 12;
 }
 
+inline SquareIndex moveGetFrom(move m) {
+  return (m >> 6) & 0x3f;
+}
+inline SquareIndex moveGetTo(move m) {
+  return m & 0x3f;
+}
+inline uint8_t moveGetFlags(move m) {
+  return (m >> 12 ) & 0x3f;
+}
+
 class SquareInfo {
 public:
   Color color;
   Piece piece;
   SquareInfo();
 };
-
-uint8_t get_ls1b_index(Bitboard bitboard);

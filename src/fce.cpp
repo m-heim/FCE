@@ -4,6 +4,7 @@
 #include <position.hpp>
 #include <bitboard.hpp>
 #include <util.hpp>
+#include <vector>
 
 int main(int argc, char **argv) {
   std::cout << "Fce is starting now ..." << std::endl;
@@ -27,8 +28,13 @@ int main(int argc, char **argv) {
   std::cout << position.stringify_board() << std::endl;
 
   MagicBitboards magics{};
-  Bitboard test;
-  Bitboard test_init = magics.knightAttacks[Square::SQUARE_D4];
-  // std::cout << test_init << std::endl;
+  //printBitboard(position.bitboards[Color::WHITE][Piece::PAWN]);
+  //printBitboard(position.occupation[Color::BLACK]);
+  //printBitboard(magics.pawnAttacks[Color::WHITE][Square::SQUARE_A1]);
+
+  std::vector<move> moves = position.generateMoves(magics);
+  //position.makeMove(moves.at(0));
+  std::cout << "found" << moves.size() << std::endl;
+  std::cout << position.stringify_board() << std::endl;
   return 0;
 }

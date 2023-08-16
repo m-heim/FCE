@@ -1,5 +1,6 @@
 #pragma once
 #include "core.hpp"
+#include <string.h>
 #include <cstdint>
 
 constexpr Bitboard fileA = 0x0101010101010101;
@@ -40,6 +41,16 @@ constexpr Bitboard notRank8 = ~rank8;
 
 Bitboard bitboardSetSquare(SquareIndex index);
 Bitboard getKnightAttacks(Bitboard board);
+void printBitboard(Bitboard board);
+
+
+inline Bitboard bitboardSetSquare(SquareIndex index) {
+    return 1ULL << index;
+}
+
+inline SquareIndex get_ls1b_index(Bitboard bitboard) {
+  return ffsll(bitboard) - 1;
+}
 
 
 class MagicBitboards {
