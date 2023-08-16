@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/src/fce",
-            "args": ["${workspaceFolder}/assets/start.fen"],
+            "args": ["${workspaceFolder}/assets/pawn.fen"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
