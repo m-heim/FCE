@@ -23,11 +23,19 @@ public:
   Position();
   void setSquare(SquareIndex square, Color color, Piece piece);
   std::string stringify_board();
-  double evaluate(void);
+  Evaluation evaluate(void);
   void makeMove(move m);
   move search();
+  inline bool kingExists() {
+    return bitboards[to_move][Piece::KING] != 0;
+  }
   std::vector<move> generatePawnMoves(MagicBitboards &magics);
   std::vector<move> generatePieceMoves(MagicBitboards &magics);
   std::vector<move> generateMoves(MagicBitboards &magics);
 };
 std::vector<Position> makeMoves(Position p, std::vector<move> moves);
+Evaluation negaMax(Position position, uint16_t depth, MagicBitboards &magics);
+move negaMaxRoot(Position position, uint16_t depth, MagicBitboards &magics);
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft, MagicBitboards &magics, bool top);
+Evaluation alphaBetaMax(Position p, Evaluation alpha, Evaluation beta, int depthleft, MagicBitboards &magics);
+Evaluation alphaBetaMin(Position p, Evaluation alpha, Evaluation beta, int depthleft, MagicBitboards &magics);

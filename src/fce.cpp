@@ -1,4 +1,5 @@
 #include <bitboard.hpp>
+#include <bits/getopt_core.h>
 #include <fen.hpp>
 #include <fstream>
 #include <iostream>
@@ -8,10 +9,21 @@
 
 int main(int argc, char **argv) {
   std::cout << "Fce is starting now ..." << std::endl;
-  if (argc <= 1) {
-    fce_error("Please provide a fen", 2);
-  }
-  std::string fen_file = std::string(argv[1]);
+  char c;
+  uint8_t depth = 0;
+  std::string fen_file = "";
+  while ((c = getopt(argc, argv, "d:f:")) != -1) {
+    switch (c) {
+        case 'd': 
+            depth = std::atoi(optarg);
+            break;
+        case 'f': 
+            fen_file.append(optarg);
+            break;
+        default:
+            exit(2);
+    }
+}
   std::ifstream fen_file_stream(fen_file, std::ios::in);
   if (!fen_file_stream.is_open()) {
     fce_error("Failed to open fen", 1);
@@ -25,20 +37,19 @@ int main(int argc, char **argv) {
 
   Position position = parse_fen(fen);
 
-  std::cout << position.stringify_board() << std::endl;
-  //printBitboard(position.occupation[Color::WHITE]);
-  //printBitboard(position.occupation[Color::BLACK]);
-  //printBitboard(position.bitboards[Color::WHITE][Piece::PAWN]);
+  std::cout << "Position" << position.stringify_board() << std::endl;
 
   MagicBitboards magics{};
+  //move bestMove = negaMaxRoot(position, 6, magics);
+  //SquareIndex from = moveGetFrom(bestMove);
+  //SquareIndex to = moveGetTo(bestMove);
+  //MoveFlags flags = moveGetFlags(bestMove);
+  //std::cout << "Best move" << "\n" << std::to_string(from) << "\n" << std::to_string(to) << std::endl;;
+
+  Evaluation eval = alphaBeta(&position, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth, magics, true);
+  std::cout << "Eval" << eval << std::endl;;
 
   std::vector<move> moves = position.generateMoves(magics);
-  // position.makeMove(moves.at(0));
   std::cout << "found" << moves.size() << std::endl;
-  //std::cout << position.stringify_board() << std::endl;
-  std::vector<Position> positions = makeMoves(position, moves);
-  for (Position new_position_item : positions) {
-    std::cout << new_position_item.stringify_board() << std::endl;
-  }
   return 0;
 }

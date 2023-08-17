@@ -27,9 +27,12 @@ void printBitboard(Bitboard board) {
 MagicBitboards::MagicBitboards() {
   for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
     Bitboard board = bitboardSetSquare(index);
-    Bitboard attacks = ((board & notFileA) << Direction::NORTH_WEST |
+    Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |
                         ((board & notFileH) << Direction::NORTH_EAST));
-    pawnAttacks[Color::WHITE][index] = attacks;
+    Bitboard attacks_black = ((board & notFileH) >> Direction::NORTH_WEST |
+                        ((board & notFileA) >> Direction::NORTH_EAST));
+    pawnAttacks[Color::WHITE][index] = attacks_white;
+    pawnAttacks[Color::BLACK][index] = attacks_black;
     knightAttacks[index] = getKnightAttacks(board);
   }
 }

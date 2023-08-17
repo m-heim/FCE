@@ -1,5 +1,6 @@
 #pragma once
 #include "core.hpp"
+#include <bit>
 #include <cstdint>
 #include <string.h>
 
@@ -55,6 +56,10 @@ inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
 
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
   return ffsll(bitboard) - 1;
+}
+
+inline uint8_t bitboardGetHW(Bitboard bitboard) {
+  return std::popcount(bitboard);
 }
 
 class MagicBitboards {
