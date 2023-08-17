@@ -127,16 +127,14 @@ std::vector<move> Position::generatePawnMoves(MagicBitboards &magics) {
       moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
       attacks = bitboardUnsetSquare(attacks, to);
     }
-    Bitboard pushes;
-    if (to_move == Color::WHITE) {
-      pushes = ~(occupation[opponent] | occupation[to_move]) &
-                      (bitboardSetSquare(from) << Direction::NORTH);
-    } else {
-      pushes = ~(occupation[opponent] | occupation[to_move]) &
-                      (bitboardSetSquare(from) >> Direction::NORTH);
-    }
+    Bitboard empty = ~(occupation[opponent] | occupation[to_move]);
+    Bitboard pushes = magics.pawnPushes[to_move][from] & empty;
     while (pushes) {
       SquareIndex to = get_ls1b_index(pushes);
+      Bitboard doublePush = magics.pawnPushes[to_move][to];
+      if (doublePush & empty & rank4) {
+        moves.push_back(serialize_move(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
+      }
       moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
       pushes = bitboardUnsetSquare(pushes, to);
     }
@@ -222,7 +220,7 @@ move negaMaxRoot(Position position, uint16_t depth, MagicBitboards &magics) {
   return bestMove;
 }
 
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft, MagicBitboards &magics, bool top) {
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft, MagicBitboards &magics) {
     //std::cout << "At depth" << std::to_string(depthleft) << std::endl;
     //std::cout << position->stringify_board() << alpha << beta << std::endl;
    if( depthleft == 0) {
@@ -237,7 +235,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
       if (!makeMove(p, m)) {
         return EvaluationLiterals::INVALID_MOVE;
       }
-      score = -alphaBeta(&p, -beta, -alpha, depthleft - 1, magics, false);
+      score = -alphaBeta(&p, -beta, -alpha, depthleft - 1, magics);
       if (score == -EvaluationLiterals::INVALID_MOVE) {
         continue;
       }
@@ -246,18 +244,26 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
       }
       if( score > alpha ) {
          alpha = score; // alpha acts like max in MiniMax
-         if (top) {
-          bestMove = m;
-         }
+         bestMove = m;
       }
    }
-   if (top) {
-    std::cout << "Best move" << std::to_string(moveGetFrom(bestMove)) << std::to_string(moveGetTo(bestMove)) << std::endl;
-        Position pNew = *position;
-        makeMove(pNew, bestMove);
-        std::cout << pNew.stringify_board() << std::endl;
-   }
    return alpha;
+}
+
+move search(Position *position, uint16_t depth, MagicBitboards &magics) {
+  std::vector<move> moves = position->generateMoves(magics);
+  Evaluation score = EvaluationLiterals::NEG_INF;
+  move bestMove = no_move;
+  for (move m : moves) {
+    Position p = *position;
+    makeMove(p, m);
+    Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth, magics);
+    if (current > score) {
+      score = current;
+      bestMove = m;
+    }
+  }
+  return bestMove;
 }
 
 std::vector<Position> makeMoves(Position position, std::vector<move> moves) {
