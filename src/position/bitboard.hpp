@@ -55,7 +55,7 @@ inline SquareIndex get_ls1b_index(Bitboard bitboard) {
 
 class MagicBitboards {
 public:
-  Bitboard pawnAttacks[Color::COLOR_COUNT][Square::SQUARE_COUNT];
+  Bitboard pawnAttacks[Color::NO_COLOR + 1][Square::SQUARE_COUNT];
   Bitboard knightAttacks[Square::SQUARE_COUNT];
   MagicBitboards();
 };
