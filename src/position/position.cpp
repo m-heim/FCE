@@ -45,6 +45,13 @@ std::string Position::stringify_board() {
 SquareInfo::SquareInfo() {}
 
 Evaluation Position::evaluate(void) {
+  Evaluation eval = 0;
+  eval += evaluateMaterial();
+  eval += evaluatePosition();
+  return eval;
+}
+
+Evaluation Position::evaluateMaterial(void) {
   std::array<Evaluation, Piece::KING + 1> values;
   values[Piece::PAWN] = 100;
   values[Piece::KNIGHT] = 300;
@@ -61,6 +68,11 @@ Evaluation Position::evaluate(void) {
   return to_move == Color::WHITE ? eval : - eval;
 }
 
+Evaluation Position::evaluatePosition(void) {
+  Evaluation eval = 0;
+  return eval;
+}
+
 std::vector<move> Position::generatePieceMoves(MagicBitboards &magics) {
   std::vector<move> moves;
   Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
@@ -71,7 +83,7 @@ std::vector<move> Position::generatePieceMoves(MagicBitboards &magics) {
     Bitboard non_attacks = magics.knightAttacks[from] & ~(occupation[opponent] | occupation[to_move]);
     while (attacks) {
       SquareIndex to = get_ls1b_index(attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
       attacks = bitboardUnsetSquare(attacks, to);
     }
     while (non_attacks) {
@@ -80,6 +92,23 @@ std::vector<move> Position::generatePieceMoves(MagicBitboards &magics) {
       non_attacks = bitboardUnsetSquare(non_attacks, to);
     }
     knights = bitboardUnsetSquare(knights, from);
+  }
+  Bitboard king = bitboards[to_move][Piece::KING];
+  while (king) {
+    SquareIndex from = get_ls1b_index(king);
+    Bitboard attacks = magics.kingAttacks[from] & occupation[opponent];
+    Bitboard non_attacks = magics.kingAttacks[from] & ~(occupation[opponent] | occupation[to_move]);
+    while (attacks) {
+      SquareIndex to = get_ls1b_index(attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
+      attacks = bitboardUnsetSquare(attacks, to);
+    }
+    while (non_attacks) {
+      SquareIndex to = get_ls1b_index(non_attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      non_attacks = bitboardUnsetSquare(non_attacks, to);
+    }
+    king = bitboardUnsetSquare(king, from);
   }
   return moves;
 }
@@ -132,7 +161,7 @@ std::vector<move> Position::generateMoves(MagicBitboards &magics) {
   return result;
 }
 
-void makeMove(Position &position, move m) {
+bool makeMove(Position &position, move m) {
   SquareIndex from = moveGetFrom(m);
   SquareIndex to = moveGetTo(m);
   uint8_t flags = moveGetFlags(m);
@@ -149,11 +178,10 @@ void makeMove(Position &position, move m) {
   position.plies += 1;
   position.to_move = opponent;
 
-  return;
+  return position.kingExists();
 }
 
 Evaluation negaMax(Position position, uint16_t depth, MagicBitboards &magics) {
-  Color side = position.to_move;
   if (depth == 0 || !position.kingExists()) {
     return position.evaluate();
   }
@@ -195,8 +223,9 @@ move negaMaxRoot(Position position, uint16_t depth, MagicBitboards &magics) {
 }
 
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft, MagicBitboards &magics, bool top) {
-    //std::cout << position.stringify_board() << alpha << beta << std::endl;
-   if( depthleft == 0 or !position->kingExists()) {
+    //std::cout << "At depth" << std::to_string(depthleft) << std::endl;
+    //std::cout << position->stringify_board() << alpha << beta << std::endl;
+   if( depthleft == 0) {
     return position->evaluate();
    }
    std::vector<move> moves = position->generateMoves(magics);
@@ -204,8 +233,14 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
    move bestMove = no_move;
    for (move m : moves)  {
       Position p = *position;
-      makeMove(p, m);
+      // if the move made by us leads to the capture of the king
+      if (!makeMove(p, m)) {
+        return EvaluationLiterals::INVALID_MOVE;
+      }
       score = -alphaBeta(&p, -beta, -alpha, depthleft - 1, magics, false);
+      if (score == -EvaluationLiterals::INVALID_MOVE) {
+        continue;
+      }
       if( score >= beta ) {
          return beta;   //  fail hard beta-cutoff
       }
@@ -225,39 +260,6 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
    return alpha;
 }
 
-Evaluation alphaBetaMax(Position p, Evaluation alpha, Evaluation beta, int depthleft, MagicBitboards &magics) {
-   std::cout << p.stringify_board() << std::endl;
-   if ( depthleft == 0 || !p.kingExists()) return p.evaluate();
-   std::vector<move> moves = p.generateMoves(magics);
-   Evaluation score;
-   for (move m : moves) {
-      Position new_pos = p;
-      makeMove(new_pos, m);
-      score = alphaBetaMin(new_pos, alpha, beta, depthleft - 1, magics);
-      if( score >= beta )
-         return beta;   // fail hard beta-cutoff
-      if( score > alpha )
-         alpha = score; // alpha acts like max in MiniMax
-   }
-   return alpha;
-}
-
-Evaluation alphaBetaMin(Position p, Evaluation alpha, Evaluation beta, int depthleft, MagicBitboards &magics) {
-   if ( depthleft == 0 || !p.kingExists()) return -p.evaluate();
-   std::vector<move> moves = p.generateMoves(magics);
-   Evaluation score;
-   for (move m : moves) {
-      Position new_pos = p;
-      makeMove(new_pos, m);
-      score = alphaBetaMax(new_pos, alpha, beta, depthleft - 1, magics);
-      if( score <= alpha )
-         return alpha; // fail hard alpha-cutoff
-      if( score < beta )
-         beta = score; // beta acts like min in MiniMax
-   }
-   return beta;
-}
-
 std::vector<Position> makeMoves(Position position, std::vector<move> moves) {
   std::vector<Position> positions;
   for (auto m : moves) {
@@ -266,11 +268,4 @@ std::vector<Position> makeMoves(Position position, std::vector<move> moves) {
     positions.push_back(position_new);
   }
   return positions;
-}
-
-
-move Position::search() {
-  move bestMove;
-  bestMove = no_move;
-  return bestMove;
 }

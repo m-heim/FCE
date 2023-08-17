@@ -8,6 +8,7 @@ typedef std::int64_t Evaluation;
 
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
+  INVALID_MOVE = NEG_INF + 1,
   POS_INF = 100000000000,
   EVEN = 0
 };

@@ -66,5 +66,6 @@ class MagicBitboards {
 public:
   Bitboard pawnAttacks[Color::NO_COLOR + 1][Square::SQUARE_COUNT];
   Bitboard knightAttacks[Square::SQUARE_COUNT];
+  Bitboard kingAttacks[Square::SQUARE_COUNT];
   MagicBitboards();
 };
