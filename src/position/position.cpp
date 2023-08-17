@@ -10,11 +10,12 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal,
   Color color = board[squareVal].color;
   board[squareVal].color = colorVal;
   board[squareVal].piece = pieceVal;
+
   Bitboard mask = bitboardSetSquare(squareVal);
-  bitboards[color][piece] &= ~mask;
-  occupation[color] &= ~mask;
-  bitboards[colorVal][pieceVal] |= mask;
-  occupation[colorVal] |= mask;
+  bitboards[color][piece] &= ~mask; // remove piece from bitboard
+  occupation[color] &= ~mask; // remove piece from occupations
+  bitboards[colorVal][pieceVal] |= mask; // add piece to bitboard
+  occupation[colorVal] |= mask; // add piece to occupations
 }
 
 Position::Position() {
@@ -69,6 +70,11 @@ Evaluation Position::evaluateMaterial(void) {
   // NOTE Assuming king is top
   for (uint8_t piece = 0; piece < Piece::KING + 1; piece++) {
     eval += (bitboardGetHW(bitboards[Color::WHITE][piece]) - bitboardGetHW(bitboards[Color::BLACK][piece])) * values[piece];
+    if (piece == Piece::PAWN) {
+      for (uint8_t col = 0; col < 8; col++) {
+        eval += (bitboardGetHW(bitboards[Color::WHITE][piece]) - bitboardGetHW(bitboards[Color::BLACK][piece])) * -50;
+      }
+    }
   }
   return to_move == Color::WHITE ? eval : - eval;
 }
@@ -121,7 +127,6 @@ std::vector<move> Position::generatePieceMoves(MagicBitboards &magics) {
 std::vector<move> Position::generatePawnMoves(MagicBitboards &magics) {
   std::vector<move> moves;
   Bitboard pawns = bitboards[to_move][Piece::PAWN];
-  Bitboard pawns_on_7 = pawns & rank7;
   Bitboard pawns_not_on_7 = pawns & notRank7;
   Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
   while (pawns_not_on_7) {
@@ -168,7 +173,6 @@ bool makeMove(Position &position, move m) {
   SquareIndex from = moveGetFrom(m);
   SquareIndex to = moveGetTo(m);
   uint8_t flags = moveGetFlags(m);
-  Color opponent = position.to_move == Color::BLACK ? Color::WHITE : Color::BLACK;
   SquareInfo movingPiece = position.board[from];
   if (flags == MoveFlags::QUIET) {
     position.setSquare(to, movingPiece.color, movingPiece.piece);
@@ -179,7 +183,7 @@ bool makeMove(Position &position, move m) {
     position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
   }
   position.plies += 1;
-  position.to_move = opponent;
+  position.to_move = position.to_move == Color::WHITE ? Color::BLACK : Color::WHITE;
 
   return position.kingExists();
 }
@@ -233,12 +237,11 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
    }
    std::vector<move> moves = position->generateMoves(magics);
    Evaluation score;
-   move bestMove = no_move;
    for (move m : moves)  {
       Position p = *position;
       // if the move made by us leads to the capture of the king
       if (!makeMove(p, m)) {
-        return EvaluationLiterals::INVALID_MOVE;
+        return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE : EvaluationLiterals::INVALID_MOVE;
       }
       score = -alphaBeta(&p, -beta, -alpha, depthleft - 1, magics);
       if (score == -EvaluationLiterals::INVALID_MOVE) {
@@ -249,34 +252,24 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
       }
       if( score > alpha ) {
          alpha = score; // alpha acts like max in MiniMax
-         bestMove = m;
+         //std::cout << "Found a better move" << p.stringify_board() << std::endl;
       }
    }
    return alpha;
 }
 
-move search(Position *position, uint16_t depth, MagicBitboards &magics) {
+SearchInfo search(Position *position, uint16_t depth, MagicBitboards &magics) {
   std::vector<move> moves = position->generateMoves(magics);
-  Evaluation score = EvaluationLiterals::NEG_INF;
+  Evaluation best = EvaluationLiterals::NEG_INF;
   move bestMove = no_move;
   for (move m : moves) {
     Position p = *position;
     makeMove(p, m);
     Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth, magics);
-    if (current > score) {
-      score = current;
+    if (current > best) {
+      best = current;
       bestMove = m;
     }
   }
-  return bestMove;
-}
-
-std::vector<Position> makeMoves(Position position, std::vector<move> moves) {
-  std::vector<Position> positions;
-  for (auto m : moves) {
-    Position position_new = position;
-    makeMove(position_new, m);
-    positions.push_back(position_new);
-  }
-  return positions;
+  return std::pair<move, Evaluation>(bestMove, best);
 }
