@@ -10,14 +10,14 @@ class Position {
 public:
   // BOARD REPRESENTATIONS
   std::array<SquareInfo, Square::SQUARE_COUNT> board;
-  std::array<std::array<Bitboard, Piece::PIECE_COUNT + 1>, Color::COLOR_COUNT + 1>
+  std::array<std::array<Bitboard, 7>, 3>
       bitboards;
-  std::array<Bitboard, Color::COLOR_COUNT + 1> occupation;
+  std::array<Bitboard, 3> occupation;
   Color to_move;
   SquareIndex en_passant;
   uint16_t plies;
   uint16_t plies_since_capture;
-  std::array<std::array<bool, Castle::CASTLE_COUNT>, Color::COLOR_COUNT>
+  std::array<std::array<bool, 4>, 2>
       castle_rights;
 
   Position();
