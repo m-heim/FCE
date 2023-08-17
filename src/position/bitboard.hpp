@@ -49,6 +49,10 @@ inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
   return board & ~bitboardSetSquare(index);
 }
 
+inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
+  *board &= ~bitboardSetSquare(index);
+}
+
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
   return ffsll(bitboard) - 1;
 }
