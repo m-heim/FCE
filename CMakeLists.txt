@@ -1,3 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 project(FCE)
+option(GPROF "Build with cmake" OFF)
+if(GPROF)
+    include(cmake/gprof.cmake)
+endif(GPROF)
 add_subdirectory(src)
