@@ -2,6 +2,7 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <iostream>
+#include <string.h>
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal,
                          Piece pieceVal) {
@@ -21,6 +22,10 @@ Position::Position() {
     board[square].color = Color::NO_COLOR;
     board[square].piece = Piece::NO_PIECE;
   }
+  occupation[Color::WHITE] = 0ULL;
+  occupation[Color::BLACK] = 0ULL;
+  occupation[Color::NO_COLOR] = 0ULL;
+  memset(&bitboards, 0, sizeof(bitboards));
 }
 
 std::string Position::stringify_board() {
