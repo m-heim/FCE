@@ -34,8 +34,8 @@ public:
   std::vector<move> generatePieceMoves(MagicBitboards &magics);
   std::vector<move> generateMoves(MagicBitboards &magics);
 };
-std::vector<Position> makeMoves(Position p, std::vector<move> moves);
+
 Evaluation negaMax(Position position, uint16_t depth, MagicBitboards &magics);
 move negaMaxRoot(Position position, uint16_t depth, MagicBitboards &magics);
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft, MagicBitboards &magics);
-move search(Position *position, uint16_t depth, MagicBitboards &boards);
+SearchInfo search(Position *position, uint16_t depth, MagicBitboards &boards);
