@@ -11,6 +11,11 @@ Bitboard getKnightAttacks(Bitboard board) {
           notFileB);
 }
 
+Bitboard getKingAttacks(Bitboard board) {
+    Bitboard cols = (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
+    return ((cols >> -Direction::WEST) & notFileH) | ((cols << Direction::EAST) & notFileA) | cols;
+}
+
 void printBitboard(Bitboard board) {
   std::cout << "  A B C D E F G H" << std::endl;
   for (int8_t row = 7; row >= 0; row--) {
@@ -34,5 +39,6 @@ MagicBitboards::MagicBitboards() {
     pawnAttacks[Color::WHITE][index] = attacks_white;
     pawnAttacks[Color::BLACK][index] = attacks_black;
     knightAttacks[index] = getKnightAttacks(board);
+    kingAttacks[index] = getKingAttacks(board);
   }
 }
