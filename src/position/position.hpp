@@ -27,6 +27,7 @@ public:
   void makeMove(move m);
   move search();
   std::vector<move> generatePawnMoves(MagicBitboards &magics);
+  std::vector<move> generatePieceMoves(MagicBitboards &magics);
   std::vector<move> generateMoves(MagicBitboards &magics);
 };
 std::vector<Position> makeMoves(Position p, std::vector<move> moves);

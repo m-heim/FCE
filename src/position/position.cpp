@@ -45,6 +45,29 @@ SquareInfo::SquareInfo() {}
 
 double Position::evaluate(void) { return 0.0; }
 
+std::vector<move> Position::generatePieceMoves(MagicBitboards &magics) {
+  std::vector<move> moves;
+  Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
+  Bitboard knights = bitboards[to_move][Piece::KNIGHT];
+  while (knights) {
+    SquareIndex from = get_ls1b_index(knights);
+    Bitboard attacks = magics.knightAttacks[from] & occupation[opponent];
+    Bitboard non_attacks = magics.knightAttacks[from] & ~(occupation[opponent] | occupation[to_move]);
+    while (attacks) {
+      SquareIndex to = get_ls1b_index(attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      attacks = bitboardUnsetSquare(attacks, to);
+    }
+    while (non_attacks) {
+      SquareIndex to = get_ls1b_index(non_attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      non_attacks = bitboardUnsetSquare(non_attacks, to);
+    }
+    knights = bitboardUnsetSquare(knights, from);
+  }
+  return moves;
+}
+
 std::vector<move> Position::generatePawnMoves(MagicBitboards &magics) {
   std::vector<move> moves;
   Bitboard pawns = bitboards[to_move][Piece::PAWN];
@@ -81,6 +104,9 @@ std::vector<move> Position::generateMoves(MagicBitboards &magics) {
   for (move m : generatePawnMoves(magics)) {
     result.push_back(m);
   }
+  for (move m : generatePieceMoves(magics)) {
+    result.push_back(m);
+  }
   return result;
 }
 
@@ -88,10 +114,8 @@ void makeMove(Position &position, move m) {
   SquareIndex from = moveGetFrom(m);
   SquareIndex to = moveGetTo(m);
   uint8_t flags = moveGetFlags(m);
-  std::cout << "Making move" << from << to << std::endl;
   SquareInfo movingPiece = position.board[from];
   if (flags == MoveFlags::QUIET) {
-    std::cout << "Moving" << std::to_string(from) << std::to_string(to) << std::endl;
     position.setSquare(to, movingPiece.color, movingPiece.piece);
     position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
     position.plies_since_capture += 1;
@@ -100,6 +124,7 @@ void makeMove(Position &position, move m) {
     position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
   }
   position.plies += 1;
+  position.to_move = position.to_move == Color::BLACK ? Color::WHITE : Color::BLACK;
 
   return;
 }
