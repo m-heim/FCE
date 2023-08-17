@@ -25,18 +25,19 @@ Position::Position() {
 
 std::string Position::stringify_board() {
   std::string ret;
+  ret.append("  A B C D E F G H\n");
   for (int8_t row = 7; row >= 0; row--) {
+    ret.push_back((char)('1' + row));
     for (int8_t col = 0; col <= 7; col++) {
+      ret.push_back(' ');
       SquareIndex square = row * 8 + col;
       char piece = piece_to_char(board[square].piece);
       if (board[square].color == Color::WHITE && piece != ' ') {
         piece += 'A' - 'a';
       }
       ret.push_back(piece);
-      if ((square + 1) % 8 == 0) {
-        ret.push_back('\n');
-      }
     }
+    ret.push_back('\n');
   }
   return ret;
 }
