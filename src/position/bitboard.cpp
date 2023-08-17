@@ -38,6 +38,10 @@ MagicBitboards::MagicBitboards() {
                         ((board & notFileA) >> Direction::NORTH_EAST));
     pawnAttacks[Color::WHITE][index] = attacks_white;
     pawnAttacks[Color::BLACK][index] = attacks_black;
+    pawnPushes[Color::WHITE][index] = board << Direction::NORTH;
+    pawnPushes[Color::BLACK][index] = board >> Direction::NORTH;
+    pawnDoublePushes[Color::WHITE][index] = board << (Direction::NORTH * 2);
+    pawnDoublePushes[Color::BLACK][index] = board >> (Direction::NORTH * 2);
     knightAttacks[index] = getKnightAttacks(board);
     kingAttacks[index] = getKingAttacks(board);
   }
