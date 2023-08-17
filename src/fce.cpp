@@ -35,21 +35,22 @@ int main(int argc, char **argv) {
   fen_file_stream.read(&fen[0], fen_size);
   fen_file_stream.close();
 
+  MagicBitboards magics{};
+
   Position position = parse_fen(fen);
 
-  std::cout << "Position" << position.stringify_board() << std::endl;
+  std::vector<move> moves = position.generateMoves(magics);
+  std::cout << "found" << moves.size() << std::endl;
 
-  MagicBitboards magics{};
+  std::cout << "Position\n" << position.stringify_board() << std::endl;
+
   //move bestMove = negaMaxRoot(position, 6, magics);
   //SquareIndex from = moveGetFrom(bestMove);
   //SquareIndex to = moveGetTo(bestMove);
   //MoveFlags flags = moveGetFlags(bestMove);
   //std::cout << "Best move" << "\n" << std::to_string(from) << "\n" << std::to_string(to) << std::endl;;
 
-  Evaluation eval = alphaBeta(&position, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth, magics, true);
-  std::cout << "Eval" << eval << std::endl;;
-
-  std::vector<move> moves = position.generateMoves(magics);
-  std::cout << "found" << moves.size() << std::endl;
+  move bestMove = search(&position, depth, magics);
+  std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove)) << squareStringify(moveGetTo(bestMove)) << std::endl;;
   return 0;
 }
