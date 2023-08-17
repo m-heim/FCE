@@ -23,13 +23,13 @@ constexpr Bitboard notFileG = ~fileG;
 constexpr Bitboard notFileH = ~fileH;
 
 constexpr Bitboard rank1 = 0xFF;
-constexpr Bitboard rank2 = rank1 * 8;
-constexpr Bitboard rank3 = rank2 * 8;
-constexpr Bitboard rank4 = rank3 * 8;
-constexpr Bitboard rank5 = rank4 * 8;
-constexpr Bitboard rank6 = rank5 * 8;
-constexpr Bitboard rank7 = rank6 * 8;
-constexpr Bitboard rank8 = rank7 * 8;
+constexpr Bitboard rank2 = rank1 << 8;
+constexpr Bitboard rank3 = rank2 << 8;
+constexpr Bitboard rank4 = rank3 << 8;
+constexpr Bitboard rank5 = rank4 << 8;
+constexpr Bitboard rank6 = rank5 << 8;
+constexpr Bitboard rank7 = rank6 << 8;
+constexpr Bitboard rank8 = rank7 << 8;
 
 constexpr Bitboard notRank1 = ~rank1;
 constexpr Bitboard notRank2 = ~rank2;
@@ -67,5 +67,7 @@ public:
   Bitboard pawnAttacks[Color::NO_COLOR + 1][Square::SQUARE_COUNT];
   Bitboard knightAttacks[Square::SQUARE_COUNT];
   Bitboard kingAttacks[Square::SQUARE_COUNT];
+  Bitboard pawnPushes[2][Square::SQUARE_COUNT];
+  Bitboard pawnDoublePushes[2][Square::SQUARE_COUNT];
   MagicBitboards();
 };
