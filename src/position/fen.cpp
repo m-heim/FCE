@@ -26,7 +26,6 @@ Position parse_fen(std::string fen) {
   std::string move = fen.substr(start, next - start);
 
   Position position{};
-  
 
   uint8_t row = 7;
   uint8_t col = 0;
