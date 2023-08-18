@@ -1,7 +1,6 @@
 #include "fen.hpp"
 #include "core.hpp"
 #include "position.hpp"
-#include "util.hpp"
 #include <string.h>
 
 Position parse_fen(std::string fen) {

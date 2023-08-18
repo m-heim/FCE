@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
-#include <util.hpp>
 #include <vector>
 
 int main(int argc, char **argv) {
