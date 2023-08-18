@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   //MoveFlags flags = moveGetFlags(bestMove);
   //std::cout << "Best move" << "\n" << std::to_string(from) << "\n" << std::to_string(to) << std::endl;;
 
-  move bestMove = search(&position, depth, magics);
-  std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove)) << squareStringify(moveGetTo(bestMove)) << std::endl;;
+  SearchInfo bestMove = search(&position, depth, magics);
+  std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first)) << squareStringify(moveGetTo(bestMove.first)) <<std::endl << "Eval" << std::to_string(bestMove.second) << std::endl;;
   return 0;
 }
