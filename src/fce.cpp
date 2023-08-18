@@ -35,22 +35,22 @@ int main(int argc, char **argv) {
   fen_file_stream.read(&fen[0], fen_size);
   fen_file_stream.close();
 
-  MagicBitboards magics{};
+  initMagics();
 
   Position position = parse_fen(fen);
 
-  std::vector<move> moves = position.generateMoves(magics);
+  std::vector<Move> moves = position.generateMoves();
   std::cout << "found" << moves.size() << std::endl;
 
   std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-  //move bestMove = negaMaxRoot(position, 6, magics);
+  //Move bestMove = negaMaxRoot(position, 6, magics);
   //SquareIndex from = moveGetFrom(bestMove);
   //SquareIndex to = moveGetTo(bestMove);
   //MoveFlags flags = moveGetFlags(bestMove);
-  //std::cout << "Best move" << "\n" << std::to_string(from) << "\n" << std::to_string(to) << std::endl;;
+  //std::cout << "Best Move" << "\n" << std::to_string(from) << "\n" << std::to_string(to) << std::endl;;
 
-  SearchInfo bestMove = search(&position, depth, magics);
+  SearchInfo bestMove = search(&position, depth);
   std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first)) << squareStringify(moveGetTo(bestMove.first)) <<std::endl << "Eval" << std::to_string(bestMove.second) << std::endl;;
   return 0;
 }
