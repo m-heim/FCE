@@ -33,6 +33,7 @@ public:
   std::vector<Move> generatePawnMoves();
   std::vector<Move> generatePieceMoves();
   std::vector<Move> generateMoves();
+  bool makeMove(Position &position, Move m);
 };
 
 Evaluation negaMax(Position position, uint16_t depth);
