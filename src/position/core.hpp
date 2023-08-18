@@ -6,6 +6,10 @@
 #define MOVE_LIMIT_N 218
 
 typedef std::int64_t Evaluation;
+typedef std::uint64_t Bitboard;
+typedef std::int8_t Offset;
+typedef std::uint8_t SquareIndex;
+typedef std::uint16_t Move;
 
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
@@ -13,8 +17,6 @@ enum EvaluationLiterals : Evaluation {
   POS_INF = 100000000000,
   EVEN = 0
 };
-
-typedef std::uint64_t Bitboard;
 
 enum Color { WHITE, BLACK, NO_COLOR,COLOR_TOP=NO_COLOR};
 
@@ -45,8 +47,6 @@ enum MoveFlags : std::uint8_t {
   MASK = 0x0F
 };
 
-typedef std::int8_t Offset;
-
 enum Direction : Offset {
   SOUTH = -8,
   NORTH = 8,
@@ -66,7 +66,6 @@ enum Direction : Offset {
   WWS = WEST + WEST + SOUTH
 };
 
-typedef std::uint8_t SquareIndex;
 enum Square : SquareIndex {
   SQUARE_A1,
   SQUARE_B1,
@@ -132,24 +131,26 @@ enum Square : SquareIndex {
   SQUARE_F8,
   SQUARE_G8,
   SQUARE_H8,
-  SQUARE_COUNT,
+  SQUARE_COUNT = SQUARE_H8 - SQUARE_A1 + 1,
   SQUARE_NONE
 };
 
-typedef std::uint16_t move;
+typedef std::pair<Move, Evaluation> SearchInfo;
 
-typedef std::pair<move, Evaluation> SearchInfo;
+constexpr Move no_move = 65;
 
-constexpr move no_move = 65;
+// INLINE FUNCTIONS FAST PROCESSING
 
-inline move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
+inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
   return to | from << 6 | flags << 12;
 }
 
-inline SquareIndex moveGetFrom(move m) { return (m >> 6) & 0x3f; }
-inline SquareIndex moveGetTo(move m) { return m & 0x3f; }
+inline SquareIndex moveGetFrom(Move m) { return (m >> 6) & 0x3f; }
+inline SquareIndex moveGetTo(Move m) { return m & 0x3f; }
 // FIXME
-inline MoveFlags moveGetFlags(move m) { return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK); }
+inline MoveFlags moveGetFlags(Move m) { return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK); }
+
+void fce_error(std::string message, int exit_code);
 
 inline std::string squareStringify(SquareIndex index) {
   std::string ret;

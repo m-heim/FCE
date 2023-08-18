@@ -24,3 +24,8 @@ char piece_to_char(Piece piece) {
     exit(1);
   }
 }
+
+void fce_error(std::string message, int exit_code) {
+  std::cerr << message << std::endl;
+  std::exit(exit_code);
+}
