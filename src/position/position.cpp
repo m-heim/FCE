@@ -84,6 +84,25 @@ Evaluation Position::evaluatePosition(void) {
   return eval;
 }
 
+bool Position::makeMove(Move m) {
+  SquareIndex from = moveGetFrom(m);
+  SquareIndex to = moveGetTo(m);
+  uint8_t flags = moveGetFlags(m);
+  SquareInfo movingPiece = board[from];
+  if (flags == MoveFlags::QUIET) {
+    setSquare(to, movingPiece.color, movingPiece.piece);
+    setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+    plies_since_capture += 1;
+  } else if (flags == MoveFlags::CAPTURE) {
+    setSquare(to, movingPiece.color, movingPiece.piece);
+    setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+  }
+  plies += 1;
+  to_move = to_move == Color::WHITE ? Color::BLACK : Color::WHITE;
+
+  return kingExists();
+}
+
 std::vector<Move> Position::generatePieceMoves() {
   std::vector<Move> moves;
   Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
@@ -169,25 +188,6 @@ std::vector<Move> Position::generateMoves() {
   return result;
 }
 
-bool makeMove(Position &position, Move m) {
-  SquareIndex from = moveGetFrom(m);
-  SquareIndex to = moveGetTo(m);
-  uint8_t flags = moveGetFlags(m);
-  SquareInfo movingPiece = position.board[from];
-  if (flags == MoveFlags::QUIET) {
-    position.setSquare(to, movingPiece.color, movingPiece.piece);
-    position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-    position.plies_since_capture += 1;
-  } else if (flags == MoveFlags::CAPTURE) {
-    position.setSquare(to, movingPiece.color, movingPiece.piece);
-    position.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-  }
-  position.plies += 1;
-  position.to_move = position.to_move == Color::WHITE ? Color::BLACK : Color::WHITE;
-
-  return position.kingExists();
-}
-
 Evaluation negaMax(Position position, uint16_t depth) {
   if (depth == 0 || !position.kingExists()) {
     return position.evaluate();
@@ -197,7 +197,7 @@ Evaluation negaMax(Position position, uint16_t depth) {
   //std::cout << "Found" << moves.size() << "moves" << std::endl;
   for (Move m : moves) {
     Position p = position;
-    makeMove(p, m);
+    p.makeMove(m);
     //std::cout << p.stringify_board() << std::endl;
     Evaluation current = - negaMax(p, depth - 1);
     //std::cout << current << std::endl;
@@ -218,7 +218,7 @@ Move negaMaxRoot(Position position, uint16_t depth) {
   std::vector<Move> moves = position.generateMoves();
   for (Move m : moves) {
     Position p = position;
-    makeMove(p, m);
+    p.makeMove(m);
     Evaluation current = - negaMax(p, depth - 1);
     std::cout << current << std::endl;
     if (current > max) {
@@ -240,7 +240,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
    for (Move m : moves)  {
       Position p = *position;
       // if the Move made by us leads to the capture of the king
-      if (!makeMove(p, m)) {
+      if (!p.makeMove(m)) {
         return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE : EvaluationLiterals::INVALID_MOVE;
       }
       score = -alphaBeta(&p, -beta, -alpha, depthleft - 1);
@@ -264,7 +264,7 @@ SearchInfo search(Position *position, uint16_t depth) {
   Move bestMove = no_move;
   for (Move m : moves) {
     Position p = *position;
-    makeMove(p, m);
+    p.makeMove(m);
     Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
     if (current > best) {
       best = current;
