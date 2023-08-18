@@ -28,8 +28,13 @@ void printBitboard(Bitboard board) {
     std::cout << "\n";
   }
 }
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
+std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
+std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 
-MagicBitboards::MagicBitboards() {
+void initMagics() {
   for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
     Bitboard board = bitboardSetSquare(index);
     Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |

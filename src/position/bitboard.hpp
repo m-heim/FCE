@@ -3,6 +3,7 @@
 #include <bit>
 #include <cstdint>
 #include <string.h>
+#include <array>
 
 constexpr Bitboard fileA = 0x0101010101010101;
 constexpr Bitboard fileB = fileA << 1;
@@ -62,12 +63,10 @@ inline uint8_t bitboardGetHW(Bitboard bitboard) {
   return std::popcount(bitboard);
 }
 
-class MagicBitboards {
-public:
-  Bitboard pawnAttacks[Color::NO_COLOR + 1][Square::SQUARE_COUNT];
-  Bitboard knightAttacks[Square::SQUARE_COUNT];
-  Bitboard kingAttacks[Square::SQUARE_COUNT];
-  Bitboard pawnPushes[2][Square::SQUARE_COUNT];
-  Bitboard pawnDoublePushes[2][Square::SQUARE_COUNT];
-  MagicBitboards();
-};
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
+
+void initMagics();
