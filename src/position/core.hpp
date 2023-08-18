@@ -137,6 +137,9 @@ enum Square : SquareIndex {
 };
 
 typedef std::uint16_t move;
+
+typedef std::pair<move, Evaluation> SearchInfo;
+
 constexpr move no_move = 65;
 
 inline move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
