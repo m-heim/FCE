@@ -10,6 +10,7 @@ typedef std::uint64_t Bitboard;
 typedef std::int8_t Offset;
 typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
+typedef std::pair<Move, Evaluation> SearchInfo;
 
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
@@ -18,20 +19,25 @@ enum EvaluationLiterals : Evaluation {
   EVEN = 0
 };
 
-enum Color { WHITE, BLACK, NO_COLOR,COLOR_TOP=NO_COLOR};
+enum Color { WHITE, BLACK, NO_COLOR, COLOR_TOP = NO_COLOR };
 
-enum Piece { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NO_PIECE, PIECE_TOP=NO_PIECE};
+enum Piece {
+  PAWN,
+  KNIGHT,
+  BISHOP,
+  ROOK,
+  QUEEN,
+  KING,
+  NO_PIECE,
+  PIECE_TOP = NO_PIECE
+};
 
-char piece_to_char(Piece piece);
-
-enum Castle { QUEENSIDE, KINGSIDE, CASTLE_COUNT, NO_CASTLE, CASTLE_TOP=NO_CASTLE};
-
-enum Promotion {
-  NO_PROMOTION = 0,
-  QUEEN_PROMOTION = 1,
-  ROOK_PROMOTION = 2,
-  BISHOP_PROMOTION = 3,
-  KNIGHT_PROMOTION = 4
+enum Castle {
+  QUEENSIDE,
+  KINGSIDE,
+  CASTLE_COUNT,
+  NO_CASTLE,
+  CASTLE_TOP = NO_CASTLE
 };
 
 enum MoveFlags : std::uint8_t {
@@ -64,6 +70,18 @@ enum Direction : Offset {
   NNW = NORTH + NORTH + WEST,
   WWN = WEST + WEST + NORTH,
   WWS = WEST + WEST + SOUTH
+};
+
+enum RayDirection : Offset {
+  NORTH_RAY,
+  NORTH_EAST_RAY,
+  EAST_RAY,
+  SOUTH_EAST_RAY,
+  SOUTH_RAY,
+  SOUTH_WEST_RAY,
+  WEST_RAY,
+  NORTH_WEST_RAY,
+  RAY_COUNT = NORTH_WEST_RAY + 1
 };
 
 enum Square : SquareIndex {
@@ -135,8 +153,6 @@ enum Square : SquareIndex {
   SQUARE_NONE
 };
 
-typedef std::pair<Move, Evaluation> SearchInfo;
-
 constexpr Move no_move = 65;
 
 // INLINE FUNCTIONS FAST PROCESSING
@@ -148,18 +164,18 @@ inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
 inline SquareIndex moveGetFrom(Move m) { return (m >> 6) & 0x3f; }
 inline SquareIndex moveGetTo(Move m) { return m & 0x3f; }
 // FIXME
-inline MoveFlags moveGetFlags(Move m) { return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK); }
+inline MoveFlags moveGetFlags(Move m) {
+  return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK);
+}
 
+// non performance relevant functions
 void fce_error(std::string message, int exit_code);
 
-inline std::string squareStringify(SquareIndex index) {
-  std::string ret;
-  uint8_t col = index % 8;
-  uint8_t row = index / 8;
-  ret.push_back((col + 'a'));
-  ret.push_back((row + '1'));
-  return ret;
-}
+std::string squareStringify(SquareIndex index);
+
+char piece_to_char(Piece piece);
+
+void printSquare(SquareIndex index);
 
 class SquareInfo {
 public:

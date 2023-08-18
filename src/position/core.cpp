@@ -29,3 +29,16 @@ void fce_error(std::string message, int exit_code) {
   std::cerr << message << std::endl;
   std::exit(exit_code);
 }
+
+std::string squareStringify(SquareIndex index) {
+  std::string ret;
+  uint8_t col = index % 8;
+  uint8_t row = index / 8;
+  ret.push_back((col + 'a'));
+  ret.push_back((row + '1'));
+  return ret;
+}
+
+void printSquare(SquareIndex index) {
+  std::cout << squareStringify(index) << std::endl;
+}
