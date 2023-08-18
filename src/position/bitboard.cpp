@@ -1,5 +1,6 @@
 #include "bitboard.hpp"
 #include "core.hpp"
+#include <bit>
 #include <iostream>
 
 Bitboard getKnightAttacks(Bitboard board) {
@@ -12,8 +13,50 @@ Bitboard getKnightAttacks(Bitboard board) {
 }
 
 Bitboard getKingAttacks(Bitboard board) {
-    Bitboard cols = (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
-    return ((cols >> -Direction::WEST) & notFileH) | ((cols << Direction::EAST) & notFileA) | cols;
+  Bitboard cols =
+      (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
+  return ((cols >> -Direction::WEST) & notFileH) |
+         ((cols << Direction::EAST) & notFileA) | cols;
+}
+
+Bitboard getDiagonalMask(SquareIndex index) {
+  int8_t toShift = ((index & Square::SQUARE_H1) - (index >> 3)) * 8;
+  return toShift >= 0 ? diagonal >> toShift : diagonal << -toShift;
+}
+
+Bitboard getDiagonal2Mask(SquareIndex index) {
+  int8_t toShift = (7 - (index & Square::SQUARE_H1) - (index >> 3)) * 8;
+  return toShift >= 0 ? diagonal2 >> toShift : diagonal2 << -toShift;
+}
+
+Bitboard getRankMask(SquareIndex index) {
+  return rank1 << (index & Square::SQUARE_A8);
+}
+
+Bitboard getFileMask(SquareIndex index) {
+  return fileA << (index & Square::SQUARE_H1);
+}
+
+Bitboard getRookMask(SquareIndex index) {
+  return getFileMask(index) & getRankMask(index);
+}
+
+Bitboard getQueenMask(SquareIndex index) {
+  return getRookMask(index) & getBishopMask(index);
+}
+
+Bitboard getBishopMask(SquareIndex index) {
+  return getDiagonalMask(index) | getDiagonal2Mask(index);
+}
+
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
+void initRayAttacks() {
+
+  Bitboard north = fileA << 8;
+  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
+       square++, north <<= 1) {
+    rays[RayDirection::NORTH_RAY][square] = north;
+  }
 }
 
 void printBitboard(Bitboard board) {
@@ -38,9 +81,9 @@ void initMagics() {
   for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
     Bitboard board = bitboardSetSquare(index);
     Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |
-                        ((board & notFileH) << Direction::NORTH_EAST));
+                              ((board & notFileH) << Direction::NORTH_EAST));
     Bitboard attacks_black = ((board & notFileH) >> Direction::NORTH_WEST |
-                        ((board & notFileA) >> Direction::NORTH_EAST));
+                              ((board & notFileA) >> Direction::NORTH_EAST));
     pawnAttacks[Color::WHITE][index] = attacks_white;
     pawnAttacks[Color::BLACK][index] = attacks_black;
     pawnPushes[Color::WHITE][index] = board << Direction::NORTH;
