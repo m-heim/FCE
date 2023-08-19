@@ -10,6 +10,7 @@ typedef std::uint64_t Bitboard;
 typedef std::int8_t Offset;
 typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
+typedef std::array<Move, MOVE_LIMIT_N> MoveList;
 typedef std::pair<Move, Evaluation> SearchInfo;
 
 enum EvaluationLiterals : Evaluation {
