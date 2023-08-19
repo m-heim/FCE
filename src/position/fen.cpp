@@ -36,27 +36,9 @@ Position parse_fen(std::string fen) {
       int moveCols = curr - '0';
       col += moveCols;
     } else {
-      Piece piece;
-      if (curr == 'r' || curr == 'R') {
-        piece = ROOK;
-      } else if (curr == 'b' || curr == 'B') {
-        piece = BISHOP;
-      } else if (curr == 'k' || curr == 'K') {
-        piece = KING;
-      } else if (curr == 'n' || curr == 'N') {
-        piece = KNIGHT;
-      } else if (curr == 'Q' || curr == 'q') {
-        piece = QUEEN;
-      } else if (curr == 'p' || curr == 'P') {
-        piece = PAWN;
-      } else {
-        piece = NO_PIECE;
-        fce_error("Could\'t read fen position", 1);
-      }
-      Color color = (curr >= 'a' && curr <= 'z') ? Color::BLACK : Color::WHITE;
-      position.setSquare((row << 3) + col, color, piece);
+      SquareInfo square = charToSquareInfo(curr);
+      position.setSquare((row << 3) + col, square.color, square.piece);
       col++;
-
     }
   }
   if (side == "w") {

@@ -16,13 +16,19 @@ typedef std::pair<Move, Evaluation> SearchInfo;
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
   INVALID_MOVE = NEG_INF + 1,
+  PAWN_VAL = 100,
+  KNIGHT_VAL = 300,
+  BISHOP_VAL = 315,
+  ROOK_VAL = 450,
+  QUEEN_VAL = 900,
+  KING_VAL = 2000000,
   POS_INF = 100000000000,
   EVEN = 0
 };
 
-enum Color { WHITE, BLACK, NO_COLOR, COLOR_TOP = NO_COLOR };
+enum Color : uint8_t { WHITE, BLACK, NO_COLOR, COLOR_TOP = NO_COLOR };
 
-enum Piece {
+enum Piece : uint8_t {
   PAWN,
   KNIGHT,
   BISHOP,
@@ -177,11 +183,14 @@ std::string squareStringify(SquareIndex index);
 
 char piece_to_char(Piece piece);
 
-void printSquare(SquareIndex index);
-
 class SquareInfo {
 public:
   Color color;
   Piece piece;
   SquareInfo();
+  SquareInfo(Color colorVal, Piece pieceVal);
 };
+
+SquareInfo charToSquareInfo(char piece);
+
+void printSquare(SquareIndex index);

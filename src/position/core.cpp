@@ -25,6 +25,30 @@ char piece_to_char(Piece piece) {
   }
 }
 
+SquareInfo charToSquareInfo(char piece) {
+  SquareInfo info{};
+  info.color = piece >= 'a' && piece <= 'z' ? Color::BLACK : Color::WHITE;
+  if (piece == 'p' || piece == 'P') {
+    info.piece = Piece::PAWN;
+  } else if (piece == 'n' || piece == 'N') {
+    info.piece = Piece::KNIGHT;
+  } else if (piece == 'b' || piece == 'B') {
+    info.piece = Piece::BISHOP;
+  } else if (piece == 'r' || piece == 'R') {
+    info.piece = Piece::ROOK;
+  } else if (piece == 'q' || piece == 'Q') {
+    info.piece = Piece::QUEEN;
+  //} else if (piece == ' ') {
+  //  info.piece = Piece::NO_PIECE;
+  //  info.color = Color::NO_COLOR;
+  } else {
+    std::cerr << "Invalid input when converting character to SquareInfo"
+              << std::endl;
+    exit(1);
+  }
+  return info;
+}
+
 void fce_error(std::string message, int exit_code) {
   std::cerr << message << std::endl;
   std::exit(exit_code);
@@ -41,4 +65,9 @@ std::string squareStringify(SquareIndex index) {
 
 void printSquare(SquareIndex index) {
   std::cout << squareStringify(index) << std::endl;
+}
+
+SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
+  color = colorVal;
+  piece = pieceVal;
 }
