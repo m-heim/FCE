@@ -82,7 +82,7 @@ enum RayDirection : Offset {
   NORTH_RAY,
   NORTH_EAST_RAY,
   EAST_RAY,
-  POSITIVE=NORTH_WEST_RAY,
+  POSITIVE = NORTH_WEST_RAY,
   RAY_COUNT = EAST_RAY + 1
 };
 

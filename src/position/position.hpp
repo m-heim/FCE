@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
-
 class Position {
 public:
   // BOARD REPRESENTATIONS
@@ -27,9 +26,7 @@ public:
   Evaluation evaluateMaterial(void);
   Evaluation evaluatePosition(void);
   bool makeMove(Move m);
-  inline bool kingExists() {
-    return bitboards[to_move][Piece::KING] != 0;
-  }
+  inline bool kingExists() { return bitboards[to_move][Piece::KING] != 0; }
   std::vector<Move> generatePawnMoves();
   std::vector<Move> generatePieceMoves();
   std::vector<Move> generateMoves();
@@ -38,5 +35,6 @@ public:
 
 Evaluation negaMax(Position position, uint16_t depth);
 Move negaMaxRoot(Position position, uint16_t depth);
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft);
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
+                     uint16_t depthleft);
 SearchInfo search(Position *position, uint16_t depth);
