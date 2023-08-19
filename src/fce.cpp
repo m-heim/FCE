@@ -44,13 +44,12 @@ int main(int argc, char **argv) {
 
   std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-
   SearchInfo bestMove = search(&position, depth);
   std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
             << squareStringify(moveGetTo(bestMove.first)) << std::endl
             << "Eval" << std::to_string(bestMove.second) << std::endl;
   ;
 
-  //printBitboard(bishopMagics[Square::SQUARE_D3].getAttack(fileB));
+  // printBitboard(bishopMagics[Square::SQUARE_D3].getAttack(fileB));
   return 0;
 }

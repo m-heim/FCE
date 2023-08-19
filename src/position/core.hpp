@@ -175,8 +175,12 @@ inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
   return to | from << 6 | flags << 12;
 }
 
-inline SquareIndex moveGetFrom(Move m) { return (m >> 6) & 0x3f; }
-inline SquareIndex moveGetTo(Move m) { return m & 0x3f; }
+inline SquareIndex moveGetFrom(Move m) {
+  return (m >> 6) & 0x3f;
+}
+inline SquareIndex moveGetTo(Move m) {
+  return m & 0x3f;
+}
 // FIXME
 inline MoveFlags moveGetFlags(Move m) {
   return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK);

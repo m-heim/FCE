@@ -12,7 +12,7 @@ std::default_random_engine randEngine(randDev());
 std::uniform_int_distribution<Bitboard> numbers(emptyBitboard, fullBitboard);
 
 // CODE FROM Tord Romstad
-Bitboard randomBitboard(){
+Bitboard randomBitboard() {
   return numbers(randEngine);
 }
 Bitboard randomBitboardFewbits() {
@@ -23,7 +23,8 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
   Bitboard mask = bishop ? getBishopMask(square) : getRookMask(square);
   uint8_t shift = bitboardGetHW(mask);
   uint16_t numOccupancies = 1 << shift;
-  std::array<Bitboard, NUM_POS_OCCUPANCIES> occupancies = getBitboardSubsets(mask);
+  std::array<Bitboard, NUM_POS_OCCUPANCIES> occupancies =
+      getBitboardSubsets(mask);
   std::array<Bitboard, NUM_POS_OCCUPANCIES> attacks;
   for (int i = 0; i < numOccupancies; i++) {
     attacks[i] = bishop ? getBishopAttacks(square, occupancies[i])
@@ -52,12 +53,12 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
       }
     }
     if (success) {
-      //uint8_t width = std::log2(hashtop) + 1;
-      // printSquare(square);
-      // std::cout << "top hash" << std::to_string(hashtop) << "at" <<
-      // std::to_string(attempt) //<< "with width" << std::to_string(width) <<
-      // std::endl; std::cout << std::to_string(width) << std::endl; std::cout
-      // << std::hex << magic << std::endl;
+      // uint8_t width = std::log2(hashtop) + 1;
+      //  printSquare(square);
+      //  std::cout << "top hash" << std::to_string(hashtop) << "at" <<
+      //  std::to_string(attempt) //<< "with width" << std::to_string(width) <<
+      //  std::endl; std::cout << std::to_string(width) << std::endl; std::cout
+      //  << std::hex << magic << std::endl;
       return magic;
     }
   }

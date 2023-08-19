@@ -49,7 +49,8 @@ std::string Position::stringify_board() {
   return ret;
 }
 
-SquareInfo::SquareInfo() {}
+SquareInfo::SquareInfo() {
+}
 
 Evaluation Position::evaluate(void) {
   Evaluation eval = 0;
@@ -119,8 +120,7 @@ std::vector<Move> Position::generatePieceMoves() {
   while (knights) {
     SquareIndex from = get_ls1b_index(knights);
     Bitboard attacks = knightAttacks[from] & theirs;
-    Bitboard non_attacks =
-        knightAttacks[from] & neitherOursAndTheirs;
+    Bitboard non_attacks = knightAttacks[from] & neitherOursAndTheirs;
     while (attacks) {
       SquareIndex to = get_ls1b_index(attacks);
       moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
@@ -137,8 +137,7 @@ std::vector<Move> Position::generatePieceMoves() {
   while (king) {
     SquareIndex from = get_ls1b_index(king);
     Bitboard attacks = kingAttacks[from] & theirs;
-    Bitboard non_attacks =
-        kingAttacks[from] & neitherOursAndTheirs;
+    Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
     while (attacks) {
       SquareIndex to = get_ls1b_index(attacks);
       moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));

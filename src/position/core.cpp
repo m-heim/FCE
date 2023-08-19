@@ -38,9 +38,9 @@ SquareInfo charToSquareInfo(char piece) {
     info.piece = Piece::ROOK;
   } else if (piece == 'q' || piece == 'Q') {
     info.piece = Piece::QUEEN;
-  //} else if (piece == ' ') {
-  //  info.piece = Piece::NO_PIECE;
-  //  info.color = Color::NO_COLOR;
+    //} else if (piece == ' ') {
+    //  info.piece = Piece::NO_PIECE;
+    //  info.color = Color::NO_COLOR;
   } else if (piece == 'k' || piece == 'K') {
     info.piece = Piece::KING;
   } else {

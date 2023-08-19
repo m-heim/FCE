@@ -9,7 +9,7 @@
 #define MAGICS_ARRAY_SIZE 200000
 
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
-  return ((board)*magic) >> (64 - shift);
+  return (board * magic) >> (64 - shift);
 }
 
 class Magic {
@@ -111,7 +111,9 @@ Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
 void printBitboard(Bitboard board);
 
 // bitboard manipulation
-inline Bitboard bitboardSetSquare(SquareIndex index) { return 1ULL << index; }
+inline Bitboard bitboardSetSquare(SquareIndex index) {
+  return 1ULL << index;
+}
 inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
   return board & ~bitboardSetSquare(index);
 }
