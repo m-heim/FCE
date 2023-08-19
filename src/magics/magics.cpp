@@ -5,15 +5,6 @@
 #include "core.hpp"
 Bitboard attacks[105000];
 
-class Magic {
-    public:
-    std::array<Bitboard, 2000> attacks;
-    Bitboard magic;
-    Bitboard mask;
-    uint8_t shift;
-    SquareIndex index;
-};
-
 // CODE FROM Tord Romstad
 Bitboard random_uint64() {
   Bitboard u1, u2, u3, u4;
@@ -25,27 +16,22 @@ Bitboard random_uint64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
 //
-
-Bitboard makeMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
-  return (board * magic) >> (64 - shift);
-}
-
-Bitboard findBishopMagics(SquareIndex square) {
-  Bitboard mask = getBishopMask(square);
+Bitboard findMagics(SquareIndex square, bool bishop) {
+  Bitboard mask = bishop ? getBishopMask(square) : getRookMask(square);
   uint8_t shift = bitboardGetHW(mask);
   uint16_t numOccupancies = 1 << shift;
-  std::cout << std::to_string(numOccupancies) << std::endl;
+  //std::cout << std::to_string(numOccupancies) << std::endl;
   // size is 1 << shift
   std::array<Bitboard, 4096> occupancies = getBitboardSubsets(mask);
   std::array<Bitboard, 4096> attacks;
   // calculate all the attacks for the occupancies
   for(int i = 0; i < numOccupancies; i++) {
-    attacks[i] = getBishopAttacks(square, occupancies[i]);
+    attacks[i] = bishop ? getBishopAttacks(square, occupancies[i]) : getRookAttacks(square, occupancies[i]);
   }
   Bitboard hashtop;
   // the map that will contain the attacks after hashing the bitboard
   std::array<Bitboard, 4096> attackMap;
-  for(int attempt = 0; attempt < 100000000; attempt++) {
+  for(uint64_t attempt = 0; attempt < 10000000000; attempt++) {
     hashtop = 0;
     memset(&attackMap, '\0', sizeof(attackMap));
     bool success = true;
@@ -55,7 +41,7 @@ Bitboard findBishopMagics(SquareIndex square) {
     }
     // go through all possible occupancies
     for(int i = 0; (i < numOccupancies) && success; i++) {
-      Bitboard hash = makeMagicIndex(occupancies[i], magic, shift);
+      Bitboard hash = getMagicIndex(occupancies[i], magic, shift);
       hashtop = std::max(hash, hashtop);
       // if no 
       if(attackMap[hash] == 0) {
@@ -65,9 +51,10 @@ Bitboard findBishopMagics(SquareIndex square) {
       }
     }
     if(success) {
-      //uint8_t width = std::log2(hashtop);
+      uint8_t width = std::log2(hashtop) + 1;
       //printSquare(square);
       //std::cout << "top hash" << std::to_string(hashtop) << "at" << std::to_string(attempt) //<< "with width" << std::to_string(width) << std::endl;
+      //std::cout << std::to_string(width) << std::endl;
       //std::cout << std::hex << magic << std::endl;
       return magic;
     }
@@ -77,14 +64,24 @@ Bitboard findBishopMagics(SquareIndex square) {
   return 0ULL;
 }
 
-int main() {
-    Magic magic;
-    SquareIndex square = Square::SQUARE_C2;
-    magic.mask = getBishopMask(square);
-    magic.shift = bitboardGetHW(magic.mask);
-    initRayAttacks();
-    std::array<Bitboard, 64> magics;
+int main(int argc, char **argv) {
+  int bishop = 0;
+  if (argc < 2) {
+    std::cerr << "Need an option" << std::endl;
+    exit(2);
+  }
+  if (strcmp(argv[1], "r") == 0) {
+    bishop = 0;
+  } else if (strcmp(argv[1], "b") == 0) {
+    bishop = 1;
+  } else {
+    std::cerr << "Invalid input" << std::endl;
+    std::exit(2);
+  }
+    initGlobals();
     for(SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-      magics[square] = findBishopMagics(square);
+      std::cout << findMagics(square, bishop) << ",";
+      std::flush(std::cout);
     }
+    std::cout << std::endl;
 }
