@@ -136,7 +136,7 @@ void printBitboard(Bitboard board) {
   }
 }
 
-std::array<Bitboard, 1000000> magics;
+std::array<Bitboard, 200000> magics;
 std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;

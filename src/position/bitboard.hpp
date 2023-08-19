@@ -21,7 +21,7 @@ public:
   }
 };
 
-extern std::array<Bitboard, 1000000> magics;
+extern std::array<Bitboard, 200000> magics;
 extern std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 extern std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>,
