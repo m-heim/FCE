@@ -40,11 +40,13 @@ Bitboard getFileMask(SquareIndex index) {
 }
 
 Bitboard getRookMask(SquareIndex index) {
-  return getFileMask(index) ^ getRankMask(index);
+  // mask for magic, no borders, careful
+  return ((getFileMask(index) & notRank1 & notRank8) ^ (getRankMask(index) & notFileA & notFileH));
 }
 
 Bitboard getQueenMask(SquareIndex index) {
-  return getRookMask(index) ^ getBishopMask(index);
+  // mask for magic, no borders, careful
+  return (getRookMask(index) ^ getBishopMask(index));
 }
 
 Bitboard getBishopMask(SquareIndex index) {
@@ -132,12 +134,20 @@ void printBitboard(Bitboard board) {
   }
 }
 
+std::array<Bitboard, 40000> magics;
+std::array<Magic, Square::SQUARE_COUNT> rookMagics;
+std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
+void initGlobals() {
+  initRayAttacks();
+  initMagics();
+}
 void initMagics() {
+  uint32_t sliding_index = 0;
   for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
     Bitboard board = bitboardSetSquare(index);
     Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |
@@ -152,6 +162,29 @@ void initMagics() {
     pawnDoublePushes[Color::BLACK][index] = board >> (Direction::NORTH * 2);
     knightAttacks[index] = getKnightAttacks(board);
     kingAttacks[index] = getKingAttacks(board);
+    Bitboard bishopMask = getBishopMask(index);
+    Bitboard shift = bitboardGetHW(bishopMask);
+    Bitboard magicNumber = bishopMagicNumbers[index];
+    Bitboard *start = &magics[sliding_index];
+    bishopMagics[index].mask = bishopMask;
+    bishopMagics[index].magic = magicNumber;
+    bishopMagics[index].attacks = start;
+    bishopMagics[index].shift = shift;
+    std::array<Bitboard, 4096> occupancies = getBitboardSubsets(bishopMask);
+    std::array<Bitboard, 4096> attacks;
+    uint16_t combinations = (1 << shift);
+    // calculate all the attacks for the occupancies
+    for(int i = 0; i < combinations; i++) {
+      attacks[i] = getBishopAttacks(index, occupancies[i]);
+      printBitboard(getBishopAttacks(index, occupancies[i]));
+      printBitboard(occupancies[i]);
+    }
+    for(int i = 0; i < combinations; i++) {
+      Bitboard index = getMagicIndex(occupancies[i], magicNumber, shift);
+      *(start + index) = attacks[i];
+    }
+    std::cout << sliding_index << std::endl;
+    sliding_index += combinations;
   }
 }
 
