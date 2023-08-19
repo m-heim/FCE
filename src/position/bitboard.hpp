@@ -6,6 +6,8 @@
 #include <strings.h>
 #include <vector>
 
+#define MAGICS_ARRAY_SIZE 200000
+
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
   return ((board)*magic) >> (64 - shift);
 }
@@ -21,7 +23,7 @@ public:
   }
 };
 
-extern std::array<Bitboard, 200000> magics;
+extern std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
 extern std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 extern std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>,

@@ -60,8 +60,8 @@ Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
   std::array<RayDirection, 4> rookDirections = {
       RayDirection::SOUTH_RAY, RayDirection::EAST_RAY, RayDirection::NORTH_RAY,
       RayDirection::WEST_RAY};
-  for (RayDirection d : rookDirections) {
-    result |= getRayAttacks(occupancy, d, index);
+  for (RayDirection direction : rookDirections) {
+    result |= getRayAttacks(occupancy, direction, index);
   }
   return result;
 }
@@ -136,7 +136,7 @@ void printBitboard(Bitboard board) {
   }
 }
 
-std::array<Bitboard, 200000> magics;
+std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
 std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
