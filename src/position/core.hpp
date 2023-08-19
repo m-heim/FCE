@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <limits>
 #include <string>
+#include <array>
 
 #define MOVE_LIMIT_N 218
 

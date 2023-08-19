@@ -41,7 +41,10 @@ SquareInfo charToSquareInfo(char piece) {
   //} else if (piece == ' ') {
   //  info.piece = Piece::NO_PIECE;
   //  info.color = Color::NO_COLOR;
+  } else if (piece == 'k' || piece == 'K') {
+    info.piece = Piece::KING;
   } else {
+    std::cerr << piece << std::endl;
     std::cerr << "Invalid input when converting character to SquareInfo"
               << std::endl;
     exit(1);
