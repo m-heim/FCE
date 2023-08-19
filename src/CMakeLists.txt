@@ -1,4 +1,4 @@
-add_compile_options(-Wall -Wextra -Wpedantic -Ofast)
+add_compile_options(-Wall -Wextra -Wpedantic -O1)
 set(CMAKE_CXX_STANDARD 20)
 #set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*)
 add_subdirectory(position)
