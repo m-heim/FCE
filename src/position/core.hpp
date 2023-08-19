@@ -73,15 +73,16 @@ enum Direction : Offset {
 };
 
 enum RayDirection : Offset {
-  NORTH_RAY,
-  NORTH_EAST_RAY,
-  EAST_RAY,
   SOUTH_EAST_RAY,
   SOUTH_RAY,
   SOUTH_WEST_RAY,
   WEST_RAY,
   NORTH_WEST_RAY,
-  RAY_COUNT = NORTH_WEST_RAY + 1
+  NORTH_RAY,
+  NORTH_EAST_RAY,
+  EAST_RAY,
+  POSITIVE=NORTH_WEST_RAY,
+  RAY_COUNT = EAST_RAY + 1
 };
 
 enum Square : SquareIndex {
