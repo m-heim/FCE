@@ -201,8 +201,9 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
 
 std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask) {
   // https://stackoverflow.com/a/68061886
+  // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
   // use carry bit while masking all non relevant bits to iterate through all
-  // subsets
+  // subsets: Marcel van Kervinck Chess
   std::array<Bitboard, 4096> result;
   uint16_t i = 0;
   for (Bitboard current = 0; current != mask;
