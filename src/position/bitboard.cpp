@@ -22,12 +22,12 @@ Bitboard getKingAttacks(Bitboard board) {
 }
 
 Bitboard getDiagonalMask(SquareIndex index) {
-  int8_t toShift = ((index & Square::SQUARE_H1) - (index >> 3)) * 8;
+  int8_t toShift = ((index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
   return toShift >= 0 ? diagonal >> toShift : diagonal << -toShift;
 }
 
 Bitboard getDiagonal2Mask(SquareIndex index) {
-  int8_t toShift = (7 - (index & Square::SQUARE_H1) - (index >> 3)) * 8;
+  int8_t toShift = (Square::SQUARE_H1 - (index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
   return toShift >= 0 ? diagonal2 >> toShift : diagonal2 << -toShift;
 }
 

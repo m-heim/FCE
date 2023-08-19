@@ -28,37 +28,35 @@ Position parse_fen(std::string fen) {
 
   uint8_t row = 7;
   uint8_t col = 0;
-  for (char c : board) {
-    if (c == '/') {
+  for (char curr : board) {
+    if (curr == '/') {
       row -= 1;
       col = 0;
-      continue;
-    }
-    if (c >= '0' && c <= '9') {
-      int n = c - '0';
-      col += n;
-      continue;
+    } else if (curr >= '0' && curr <= '9') {
+      int moveCols = curr - '0';
+      col += moveCols;
     } else {
       Piece piece;
-      if (c == 'r' || c == 'R') {
+      if (curr == 'r' || curr == 'R') {
         piece = ROOK;
-      } else if (c == 'b' || c == 'B') {
+      } else if (curr == 'b' || curr == 'B') {
         piece = BISHOP;
-      } else if (c == 'k' || c == 'K') {
+      } else if (curr == 'k' || curr == 'K') {
         piece = KING;
-      } else if (c == 'n' || c == 'N') {
+      } else if (curr == 'n' || curr == 'N') {
         piece = KNIGHT;
-      } else if (c == 'Q' || c == 'q') {
+      } else if (curr == 'Q' || curr == 'q') {
         piece = QUEEN;
-      } else if (c == 'p' || c == 'P') {
+      } else if (curr == 'p' || curr == 'P') {
         piece = PAWN;
       } else {
         piece = NO_PIECE;
         fce_error("Could\'t read fen position", 1);
       }
-      Color color = (c >= 'a' && c <= 'z') ? Color::BLACK : Color::WHITE;
-      position.setSquare(row * 8 + col, color, piece);
+      Color color = (curr >= 'a' && curr <= 'z') ? Color::BLACK : Color::WHITE;
+      position.setSquare((row << 3) + col, color, piece);
       col++;
+
     }
   }
   if (side == "w") {
@@ -69,16 +67,16 @@ Position parse_fen(std::string fen) {
     fce_error("Couldn\'t parse side to move in fen", 1);
   }
 
-  for (auto c : castling) {
-    if (c == 'K') {
+  for (auto curr : castling) {
+    if (curr == 'K') {
       position.castle_rights[Color::WHITE][Castle::KINGSIDE] = true;
-    } else if (c == 'k') {
+    } else if (curr == 'k') {
       position.castle_rights[Color::BLACK][Castle::KINGSIDE] = true;
-    } else if (c == 'q') {
+    } else if (curr == 'q') {
       position.castle_rights[Color::BLACK][Castle::QUEENSIDE] = true;
-    } else if (c == 'Q') {
+    } else if (curr == 'Q') {
       position.castle_rights[Color::WHITE][Castle::QUEENSIDE] = true;
-    } else if (c == '-') {
+    } else if (curr == '-') {
       position.castle_rights[Color::BLACK][Castle::QUEENSIDE] = false;
       position.castle_rights[Color::BLACK][Castle::KINGSIDE] = false;
       position.castle_rights[Color::WHITE][Castle::QUEENSIDE] = false;
