@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   fen_file_stream.read(&fen[0], fen_size);
   fen_file_stream.close();
 
-  initMagics();
+  initGlobals();
 
   Position position = parse_fen(fen);
 
@@ -51,5 +51,7 @@ int main(int argc, char **argv) {
 
   SearchInfo bestMove = search(&position, depth);
   std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first)) << squareStringify(moveGetTo(bestMove.first)) <<std::endl << "Eval" << std::to_string(bestMove.second) << std::endl;;
+
+  printBitboard(bishopMagics[Square::SQUARE_A3].getAttack(fileF));
   return 0;
 }
