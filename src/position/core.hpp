@@ -1,8 +1,8 @@
 #pragma once
+#include <array>
 #include <cstdint>
 #include <limits>
 #include <string>
-#include <array>
 
 #define MOVE_LIMIT_N 218
 
@@ -27,7 +27,12 @@ enum EvaluationLiterals : Evaluation {
   EVEN = 0
 };
 
-enum Color : uint8_t { WHITE, BLACK, NO_COLOR, COLOR_TOP = NO_COLOR };
+enum Color : uint8_t {
+  WHITE,
+  BLACK,
+  NO_COLOR,
+  COLOR_TOP = NO_COLOR
+};
 
 enum Piece : uint8_t {
   PAWN,
