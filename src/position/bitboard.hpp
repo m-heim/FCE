@@ -7,7 +7,7 @@
 #include <array>
 
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
-  return (board * magic) >> (64 - shift);
+  return ((board) * magic) >> (64 - shift);
 }
 
 class Magic {
@@ -17,11 +17,11 @@ class Magic {
     Bitboard mask;
     uint8_t shift;
     inline Bitboard getAttack(Bitboard occupation) {
-      return attacks[getMagicIndex(occupation, magic, shift)];
+      return attacks[getMagicIndex(occupation & mask, magic, shift)];
     }
 };
 
-extern std::array<Bitboard, 40000> magics;
+extern std::array<Bitboard, 1000000> magics;
 extern std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 extern std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
@@ -100,6 +100,7 @@ std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask);
 void initGlobals();
 void initMagics();
 void initRayAttacks();
+Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex);
 Bitboard getRayAttacks(Bitboard occupied, RayDirection direction, SquareIndex square);
 
 void printBitboard(Bitboard board);
