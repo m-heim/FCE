@@ -31,7 +31,7 @@ void fce_error(std::string message, int exit_code) {
 }
 
 std::string squareStringify(SquareIndex index) {
-  std::string ret;
+  std::string ret = "";
   uint8_t col = index % 8;
   uint8_t row = index / 8;
   ret.push_back((col + 'a'));
