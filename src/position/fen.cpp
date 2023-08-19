@@ -78,7 +78,7 @@ Position parse_fen(std::string fen) {
   } else {
     fce_error("Couldn\'t read fen enpassant", 1);
   }
-  position.plies_since_capture = stoi(move_since_capture);
-  position.plies = stoi(move);
+  position.plies_since_capture = std::stoi(move_since_capture);
+  position.plies = std::stoi(move);
   return position;
 }
