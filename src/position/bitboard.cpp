@@ -1,10 +1,11 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <bit>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 Bitboard getKnightAttacks(Bitboard board) {
+  // Generate all possible knight moves from knights
   return ((board << Direction::NNE | board >> -Direction::SSE) & notFileA) |
          ((board << Direction::NNW | board >> -Direction::SSW) & notFileH) |
          ((board << Direction::WWN | board >> -Direction::WWS) & notFileH &
@@ -47,22 +48,75 @@ Bitboard getQueenMask(SquareIndex index) {
 }
 
 Bitboard getBishopMask(SquareIndex index) {
-  return getDiagonalMask(index) ^ getDiagonal2Mask(index);
+  // mask for magic, no borders, careful
+  return (getDiagonalMask(index) ^ getDiagonal2Mask(index)) & notBorders;
 }
-
-std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
 
 Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
-  std::array<Direction, 4> rookDirections = {Direction::SOUTH, Direction::EAST, Direction::NORTH, Direction::WEST};
+  Bitboard result = 0ULL;
+  std::array<RayDirection, 4> rookDirections = {
+      RayDirection::SOUTH_RAY, RayDirection::EAST_RAY, RayDirection::NORTH_RAY,
+      RayDirection::WEST_RAY};
+  for (RayDirection d : rookDirections) {
+    result |= getRayAttacks(occupancy, d, index);
+  }
+  return result;
 }
 
-void initRayAttacks() {
-
-  Bitboard north = fileA << 8;
-  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
-       square++, north <<= 1) {
-    rays[RayDirection::NORTH_RAY][square] = north;
+Bitboard getBishopAttacks(SquareIndex index, Bitboard occupancy) {
+  Bitboard result = 0ULL;
+  std::array<RayDirection, 4> rookDirections = {
+      RayDirection::SOUTH_EAST_RAY, RayDirection::NORTH_EAST_RAY,
+      RayDirection::NORTH_WEST_RAY, RayDirection::SOUTH_WEST_RAY};
+  for (Offset i = 0; i < 4; i++) {
+    result |= getRayAttacks(occupancy, rookDirections[i], index);
   }
+  return result;
+}
+
+std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
+std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
+
+void initRayAttacks() {
+  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
+       square++) {
+    Bitboard origin = bitboardSetSquare(square);
+    Bitboard fileMask = fileAttacks[square];
+    Bitboard rankMask = rankAttacks[square];
+    Bitboard diagonalMask = getDiagonalMask(square);
+    Bitboard diagonal2Mask = getDiagonal2Mask(square);
+    Bitboard positive = ((~emptyBitboard) << square);
+    Bitboard north = (fileMask & positive) ^ origin;
+    Bitboard east = (rankMask & positive) ^ origin;
+    Bitboard south = north ^ fileMask ^ origin;
+    Bitboard west = east ^ rankMask ^ origin;
+    Bitboard northWest = (diagonal2Mask & positive) ^ origin;
+    Bitboard northEast = (diagonalMask & positive) ^ origin;
+    Bitboard southEast = northWest ^ diagonal2Mask ^ origin;
+    Bitboard southWest = northEast ^ diagonalMask ^ origin;
+    rays[RayDirection::NORTH_RAY][square] = north;
+    rays[RayDirection::EAST_RAY][square] = east;
+    rays[RayDirection::SOUTH_RAY][square] = south;
+    rays[RayDirection::WEST_RAY][square] = west;
+    rays[RayDirection::NORTH_WEST_RAY][square] = northWest;
+    rays[RayDirection::NORTH_EAST_RAY][square] = northEast;
+    rays[RayDirection::SOUTH_WEST_RAY][square] = southWest;
+    rays[RayDirection::SOUTH_EAST_RAY][square] = southEast;
+    rankAttacks[square] = rank1 << (square & Square::SQUARE_A8);
+    fileAttacks[square] = fileA << (square >> 3);
+  }
+}
+
+Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
+                       SquareIndex square) {
+  // get all possible attacks
+  Bitboard attacks = rays[direction][square];
+  Bitboard blocker = attacks & occupied;
+  square = direction >= RayDirection::POSITIVE
+               ? get_ls1b_index(blocker | (fileH & rank8))
+               : get_ms1b_index(blocker | (fileA & rank1));
+  return attacks ^ rays[direction][square];
 }
 
 void printBitboard(Bitboard board) {
@@ -77,12 +131,12 @@ void printBitboard(Bitboard board) {
     std::cout << "\n";
   }
 }
+
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
-
 void initMagics() {
   for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
     Bitboard board = bitboardSetSquare(index);
@@ -101,12 +155,16 @@ void initMagics() {
   }
 }
 
-std::vector<Bitboard> getBitboardSubsets(Bitboard mask) {
-  std::vector<Bitboard> result;
+std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask) {
   // https://stackoverflow.com/a/68061886
-  // use carry bit while masking all non relevant bits to iterate through all subsets
-  for(Bitboard current = 0;current != mask; current = ((current | ~mask) + 1) & mask) {
-    result.push_back(current);
+  // use carry bit while masking all non relevant bits to iterate through all
+  // subsets
+  std::array<Bitboard, 4096> result;
+  uint16_t i = 0;
+  for (Bitboard current = 0; current != mask;
+       current = ((current | ~mask) + 1) & mask) {
+    result[i] = current;
+    i++;
   }
   return result;
 }

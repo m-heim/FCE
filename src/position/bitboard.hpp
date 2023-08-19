@@ -3,18 +3,21 @@
 #include <bit>
 #include <cstdint>
 #include <vector>
-#include <string.h>
+#include <strings.h>
 #include <array>
 
-// Ray attacks
-
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
+extern std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 extern std::array<Bitboard, 40000> slidingAttacks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
+
+constexpr Bitboard emptyBitboard = 0x0000000000000000;
+constexpr Bitboard fullBitboard = ~emptyBitboard;
 
 constexpr Bitboard fileA = 0x0101010101010101;
 constexpr Bitboard fileB = fileA << 1;
@@ -55,6 +58,9 @@ constexpr Bitboard notRank8 = ~rank8;
 constexpr Bitboard diagonal = 0x8040201008040201;
 constexpr Bitboard diagonal2 = 0x0102040810204080;
 
+constexpr Bitboard borders = rank1 | rank8 | fileA | fileH;
+constexpr Bitboard notBorders = ~borders;
+
 // Line attacks
 Bitboard getDiagonalMask(SquareIndex index);
 Bitboard getDiagonal2Mask(SquareIndex index);
@@ -66,29 +72,38 @@ Bitboard getQueenMask(SquareIndex index);
 Bitboard getRookMask(SquareIndex index);
 Bitboard getBishopMask(SquareIndex index);
 
+
+Bitboard getKnightAttacks(Bitboard board);
+Bitboard getBishopAttacks(SquareIndex index, Bitboard occupancy);
+Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy);
+
 // Get all possible combinations of bits in a mask
-std::vector<Bitboard> getBitboardSubsets(Bitboard mask);
+std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask);
 
 void initMagics();
 void initRayAttacks();
+Bitboard getRayAttacks(Bitboard occupied, RayDirection direction, SquareIndex square);
+
 void printBitboard(Bitboard board);
-Bitboard bitboardSetSquare(SquareIndex index);
-Bitboard getKnightAttacks(Bitboard board);
 
 
-
+// bitboard manipulation
 inline Bitboard bitboardSetSquare(SquareIndex index) { return 1ULL << index; }
-
 inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
   return board & ~bitboardSetSquare(index);
 }
-
 inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
   *board &= ~bitboardSetSquare(index);
 }
 
+
+// cpu inline
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
   return ffsll(bitboard) - 1;
+}
+inline SquareIndex get_ms1b_index(Bitboard bitboard) {
+  // NOTE returns 63 if no bit is set
+  return 63 - __builtin_clzll(bitboard);
 }
 
 inline uint8_t bitboardGetHW(Bitboard bitboard) {
