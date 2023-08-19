@@ -2,8 +2,19 @@
 #include "core.hpp"
 #include <bit>
 #include <cstdint>
+#include <vector>
 #include <string.h>
 #include <array>
+
+// Ray attacks
+
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
+extern std::array<Bitboard, 40000> slidingAttacks;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 
 constexpr Bitboard fileA = 0x0101010101010101;
 constexpr Bitboard fileB = fileA << 1;
@@ -44,9 +55,27 @@ constexpr Bitboard notRank8 = ~rank8;
 constexpr Bitboard diagonal = 0x8040201008040201;
 constexpr Bitboard diagonal2 = 0x0102040810204080;
 
+// Line attacks
+Bitboard getDiagonalMask(SquareIndex index);
+Bitboard getDiagonal2Mask(SquareIndex index);
+Bitboard getRankMask(SquareIndex index);
+Bitboard getFileMask(SquareIndex index);
+
+// Piece attacks
+Bitboard getQueenMask(SquareIndex index);
+Bitboard getRookMask(SquareIndex index);
+Bitboard getBishopMask(SquareIndex index);
+
+// Get all possible combinations of bits in a mask
+std::vector<Bitboard> getBitboardSubsets(Bitboard mask);
+
+void initMagics();
+void initRayAttacks();
+void printBitboard(Bitboard board);
 Bitboard bitboardSetSquare(SquareIndex index);
 Bitboard getKnightAttacks(Bitboard board);
-void printBitboard(Bitboard board);
+
+
 
 inline Bitboard bitboardSetSquare(SquareIndex index) { return 1ULL << index; }
 
@@ -63,28 +92,5 @@ inline SquareIndex get_ls1b_index(Bitboard bitboard) {
 }
 
 inline uint8_t bitboardGetHW(Bitboard bitboard) {
-  return std::popcount(bitboard);
+  return std::popcount<Bitboard>(bitboard);
 }
-
-// Line attacks
-Bitboard getDiagonalMask(SquareIndex index);
-Bitboard getDiagonal2Mask(SquareIndex index);
-Bitboard getRankMask(SquareIndex index);
-Bitboard getFileMask(SquareIndex index);
-
-// Piece attacks
-Bitboard getQueenMask(SquareIndex index);
-Bitboard getRookMask(SquareIndex index);
-Bitboard getBishopMask(SquareIndex index);
-
-// Ray attacks
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
-extern std::array<Bitboard, 40000> slidingAttacks;
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
-extern std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
-extern std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
-
-void initMagics();
-void initRayAttacks();

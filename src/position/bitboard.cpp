@@ -1,6 +1,7 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include <bit>
+#include <vector>
 #include <iostream>
 
 Bitboard getKnightAttacks(Bitboard board) {
@@ -38,18 +39,23 @@ Bitboard getFileMask(SquareIndex index) {
 }
 
 Bitboard getRookMask(SquareIndex index) {
-  return getFileMask(index) & getRankMask(index);
+  return getFileMask(index) ^ getRankMask(index);
 }
 
 Bitboard getQueenMask(SquareIndex index) {
-  return getRookMask(index) & getBishopMask(index);
+  return getRookMask(index) ^ getBishopMask(index);
 }
 
 Bitboard getBishopMask(SquareIndex index) {
-  return getDiagonalMask(index) | getDiagonal2Mask(index);
+  return getDiagonalMask(index) ^ getDiagonal2Mask(index);
 }
 
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 8> rays;
+
+Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
+  std::array<Direction, 4> rookDirections = {Direction::SOUTH, Direction::EAST, Direction::NORTH, Direction::WEST};
+}
+
 void initRayAttacks() {
 
   Bitboard north = fileA << 8;
@@ -93,4 +99,14 @@ void initMagics() {
     knightAttacks[index] = getKnightAttacks(board);
     kingAttacks[index] = getKingAttacks(board);
   }
+}
+
+std::vector<Bitboard> getBitboardSubsets(Bitboard mask) {
+  std::vector<Bitboard> result;
+  // https://stackoverflow.com/a/68061886
+  // use carry bit while masking all non relevant bits to iterate through all subsets
+  for(Bitboard current = 0;current != mask; current = ((current | ~mask) + 1) & mask) {
+    result.push_back(current);
+  }
+  return result;
 }
