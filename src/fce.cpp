@@ -8,11 +8,11 @@
 
 int main(int argc, char **argv) {
   std::cout << "Fce is starting now ..." << std::endl;
-  char c;
+  char option;
   uint8_t depth = 0;
-  std::string fen_file = "";
-  while ((c = getopt(argc, argv, "d:f:")) != -1) {
-    switch (c) {
+  std::string fen_file;
+  while ((option = getopt(argc, argv, "d:f:")) != -1) {
+    switch (option) {
     case 'd':
       depth = std::atoi(optarg);
       break;
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   auto fen_size = fen_file_stream.tellg();
   std::string fen(fen_size, '\0');
   fen_file_stream.seekg(0);
-  fen_file_stream.read(&fen[0], fen_size);
+  fen_file_stream.read(fen.data(), fen_size);
   fen_file_stream.close();
 
   initGlobals();
