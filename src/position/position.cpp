@@ -259,10 +259,12 @@ Move negaMaxRoot(Position position, uint16_t depth) {
   return bestMove;
 }
 
+std::array<std::uint64_t, 40> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft) {
   // std::cout << "At depth" << std::to_string(depthleft) << std::endl;
   // std::cout << position->stringify_board() << alpha << beta << std::endl;
+  positionsEvaluated[depthleft] += 1;
   if (depthleft == 0) {
     return position->evaluate();
   }
@@ -303,6 +305,10 @@ SearchInfo search(Position *position, uint16_t depth) {
       best = current;
       bestMove = m;
     }
+  }
+  for (int i = 0; i < 40; i++) {
+    std::cout << "Depth" << std::to_string(i) << " "
+              << std::to_string(positionsEvaluated[i]) << std::endl;
   }
   return std::pair<Move, Evaluation>(bestMove, best);
 }
