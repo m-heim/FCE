@@ -27,14 +27,14 @@ enum EvaluationLiterals : Evaluation {
   EVEN = 0
 };
 
-enum Color : uint8_t {
+enum Color : std::uint8_t {
   WHITE,
   BLACK,
   NO_COLOR,
   COLOR_TOP = NO_COLOR
 };
 
-enum Piece : uint8_t {
+enum Piece : std::uint8_t {
   PAWN,
   KNIGHT,
   BISHOP,
@@ -45,7 +45,7 @@ enum Piece : uint8_t {
   PIECE_TOP = NO_PIECE
 };
 
-enum Castle {
+enum Castle : std::uint8_t {
   QUEENSIDE,
   KINGSIDE,
   CASTLE_COUNT,
@@ -169,6 +169,14 @@ enum Square : SquareIndex {
 
 constexpr Move no_move = 65;
 
+class SquareInfo {
+public:
+  Color color;
+  Piece piece;
+  SquareInfo();
+  SquareInfo(Color colorVal, Piece pieceVal);
+};
+
 // INLINE FUNCTIONS FAST PROCESSING
 
 inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
@@ -181,6 +189,7 @@ inline SquareIndex moveGetFrom(Move m) {
 inline SquareIndex moveGetTo(Move m) {
   return m & 0x3f;
 }
+
 // FIXME
 inline MoveFlags moveGetFlags(Move m) {
   return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK);
@@ -192,14 +201,6 @@ void fce_error(std::string message, int exit_code);
 std::string squareStringify(SquareIndex index);
 
 char piece_to_char(Piece piece);
-
-class SquareInfo {
-public:
-  Color color;
-  Piece piece;
-  SquareInfo();
-  SquareInfo(Color colorVal, Piece pieceVal);
-};
 
 SquareInfo charToSquareInfo(char piece);
 
