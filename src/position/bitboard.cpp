@@ -118,6 +118,7 @@ void initRayAttacks() {
 Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
                        SquareIndex square) {
   // get all possible attacks
+  // TODO does this go onto the target square?
   Bitboard attacks = rays[direction][square];
   Bitboard blocker = attacks & occupied;
   square = direction >= RayDirection::POSITIVE
