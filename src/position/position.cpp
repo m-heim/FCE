@@ -1,6 +1,7 @@
 #include "position.hpp"
 #include "bitboard.hpp"
 #include "core.hpp"
+#include <chrono>
 #include <iostream>
 #include <string.h>
 
@@ -109,8 +110,7 @@ bool Position::makeMove(Move m) {
   return kingExists();
 }
 
-std::vector<Move> Position::generatePieceMoves() {
-  std::vector<Move> moves;
+void Position::generatePieceMoves(MoveList &moves) {
   Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
   Bitboard ours = occupation[to_move];
   Bitboard theirs = occupation[opponent];
@@ -169,11 +169,28 @@ std::vector<Move> Position::generatePieceMoves() {
     }
     bishop = bitboardUnsetSquare(bishop, from);
   }
-  return moves;
+  Bitboard rook = bitboards[to_move][Piece::ROOK];
+  while (rook) {
+    SquareIndex from = get_ls1b_index(rook);
+    Bitboard mask = getRookMask(from);
+    Bitboard result = rookMagics[from].getAttack(mask & oursOrTheirs);
+    Bitboard attacks = result & theirs;
+    Bitboard quiet = result & neitherOursAndTheirs;
+    while (attacks) {
+      SquareIndex to = get_ls1b_index(attacks);
+      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
+      attacks = bitboardUnsetSquare(attacks, to);
+    }
+    while (quiet) {
+      SquareIndex to = get_ls1b_index(quiet);
+      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+      quiet = bitboardUnsetSquare(quiet, to);
+    }
+    rook = bitboardUnsetSquare(rook, from);
+  }
 }
 
-std::vector<Move> Position::generatePawnMoves() {
-  std::vector<Move> moves;
+void Position::generatePawnMoves(MoveList &moves) {
   Bitboard pawns = bitboards[to_move][Piece::PAWN];
   Bitboard pawns_not_on_7 = pawns & notRank7;
   Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
@@ -200,22 +217,11 @@ std::vector<Move> Position::generatePawnMoves() {
     Bitboard mask = ~bitboardSetSquare(from);
     pawns_not_on_7 &= mask;
   }
-  // while (pawns_on_7) {
-  //   SquareIndex from = get_ls1b_index(pawns_on_7);
-  //
-  // }
-  return moves;
 }
 
-std::vector<Move> Position::generateMoves() {
-  std::vector<Move> result;
-  for (Move m : generatePawnMoves()) {
-    result.push_back(m);
-  }
-  for (Move m : generatePieceMoves()) {
-    result.push_back(m);
-  }
-  return result;
+void Position::generateMoves(MoveList &moves) {
+  generatePawnMoves(moves);
+  generatePieceMoves(moves);
 }
 
 Evaluation negaMax(Position position, uint16_t depth) {
@@ -223,11 +229,12 @@ Evaluation negaMax(Position position, uint16_t depth) {
     return position.evaluate();
   }
   Evaluation max = EvaluationLiterals::NEG_INF;
-  std::vector<Move> moves = position.generateMoves();
+  MoveList moves;
+  position.generateMoves(moves);
   // std::cout << "Found" << moves.size() << "moves" << std::endl;
-  for (Move m : moves) {
+  for (uint8_t i = 0; i < moves.count; i++) {
     Position p = position;
-    p.makeMove(m);
+    p.makeMove(moves.get(i));
     // std::cout << p.stringify_board() << std::endl;
     Evaluation current = -negaMax(p, depth - 1);
     // std::cout << current << std::endl;
@@ -244,11 +251,14 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     return position.evaluate();
   }
   Move bestMove = no_move;
+  MoveList moves;
   Evaluation max = EvaluationLiterals::NEG_INF;
-  std::vector<Move> moves = position.generateMoves();
-  for (Move m : moves) {
+  Move m;
+  position.generateMoves(moves);
+  // std::cout << "Found" << moves.size() << "moves" << std::endl;
+  for (uint8_t i = 0; i < moves.count; i++) {
     Position p = position;
-    p.makeMove(m);
+    m = p.makeMove(moves.get(i));
     Evaluation current = -negaMax(p, depth - 1);
     std::cout << current << std::endl;
     if (current > max) {
@@ -268,12 +278,13 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
   if (depthleft == 0) {
     return position->evaluate();
   }
-  std::vector<Move> moves = position->generateMoves();
+  MoveList moves;
+  position->generateMoves(moves);
   Evaluation score;
-  for (Move m : moves) {
+  for (uint8_t i = 0; i < moves.count; i++) {
     Position p = *position;
     // if the Move made by us leads to the capture of the king
-    if (!p.makeMove(m)) {
+    if (!p.makeMove(moves.get(i))) {
       return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE
                                        : EvaluationLiterals::INVALID_MOVE;
     }
@@ -293,11 +304,15 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
 }
 
 SearchInfo search(Position *position, uint16_t depth) {
-  std::vector<Move> moves = position->generateMoves();
+  auto start = std::chrono::high_resolution_clock::now();
+  MoveList moves;
+  position->generateMoves(moves);
+  std::cout << std::to_string(moves.count) << std::endl;
   Evaluation best = EvaluationLiterals::NEG_INF;
   Move bestMove = no_move;
-  for (Move m : moves) {
+  for (uint8_t i = 0; i < moves.count; i++) {
     Position p = *position;
+    Move m = moves.get(i);
     p.makeMove(m);
     Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF,
                                     EvaluationLiterals::POS_INF, depth);
@@ -306,9 +321,19 @@ SearchInfo search(Position *position, uint16_t depth) {
       bestMove = m;
     }
   }
+  uint64_t positions = 0;
   for (int i = 0; i < 40; i++) {
+    positions += positionsEvaluated[i];
     std::cout << "Depth" << std::to_string(i) << " "
               << std::to_string(positionsEvaluated[i]) << std::endl;
   }
+  double rate = (double)positions /
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::high_resolution_clock::now() - start)
+                    .count() *
+                1000;
+  std::cout << "Total of:\n"
+            << std::to_string(positions) << "\nat:\n"
+            << std::to_string(rate) << "MP/s" << std::endl;
   return std::pair<Move, Evaluation>(bestMove, best);
 }

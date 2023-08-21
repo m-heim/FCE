@@ -38,9 +38,10 @@ int main(int argc, char **argv) {
 
   Position position = parse_fen(fen);
 
-  std::vector<Move> moves = position.generateMoves();
+  MoveList moves;
+  position.generateMoves(moves);
 
-  std::cout << "Found" << std::to_string(moves.size()) << std::endl;
+  std::cout << "Found" << std::to_string(moves.count) << std::endl;
 
   std::cout << "Position\n" << position.stringify_board() << std::endl;
 
@@ -50,6 +51,6 @@ int main(int argc, char **argv) {
             << "Eval" << std::to_string(bestMove.second) << std::endl;
   ;
 
-  // printBitboard(bishopMagics[Square::SQUARE_D3].getAttack(fileB));
+  printBitboard(bishopMagics[Square::SQUARE_D5].getAttack(fileB));
   return 0;
 }

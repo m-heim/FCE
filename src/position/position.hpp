@@ -29,9 +29,9 @@ public:
   inline bool kingExists() {
     return bitboards[to_move][Piece::KING] != 0;
   }
-  std::vector<Move> generatePawnMoves();
-  std::vector<Move> generatePieceMoves();
-  std::vector<Move> generateMoves();
+  void generatePawnMoves(MoveList &moves);
+  void generatePieceMoves(MoveList &moves);
+  void generateMoves(MoveList &moves);
   bool makeMove(Position &position, Move m);
 };
 
