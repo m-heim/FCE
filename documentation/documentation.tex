@@ -1,0 +1,21 @@
+\documentclass[10p]{report}
+\usepackage[ngerman]{babel}
+\title{A functional chess engine}
+\author{M. Heim}
+\begin{document}
+\maketitle
+\section{Introduction}
+The chess game has been a popular game for centuries. With the invention of powerful computers and computer science it has become possible to search millions of chess games per second with an ordinary computer. This project is an attempt to build a properly structured, bug free and performant chess engine.
+
+\section{Explanations}
+\paragraph{Chess engine performance}
+In order to be competetive a chess engine today has to apply many different tricks and optimizations to allow the playing strength chess engines have today. The main factors identified are board representation and move generation, optimizing the search tree and recently the application of neural networks.
+\paragraph{Bitboard}
+A bitboard is a board representation for chess. It is a 64 Bit integer that holds boolean information about each square on the chess board. It may be used to represent the figures but can also be used for finding moves, checking for pins or represesenting sets of squares. In combination with the native boolean instructions on 64 Bit processors it is possible to apply operations to a whole board within just 1 to a few clock cycles compared to approaches that have to loop over the board or piece lists.
+
+\section{Code}
+
+\section{Methods}
+The board representation consists of bitboards. This allows the use of magic bitboards and other precomputed attack tables. 
+
+\end{document}
