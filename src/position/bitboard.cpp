@@ -1,5 +1,4 @@
 #include "bitboard.hpp"
-#include "core.hpp"
 #include <bit>
 #include <iostream>
 #include <vector>

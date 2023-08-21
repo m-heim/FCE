@@ -74,3 +74,12 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
   color = colorVal;
   piece = pieceVal;
 }
+
+void MoveList::addMoves(const SquareIndex &from, Bitboard &board,
+                        MoveFlags flags) {
+  while (board) {
+    SquareIndex to = get_ls1b_index(board);
+    push_back(serialize_move(from, to, flags));
+    board &= bitboardUnsetSquare(board, to);
+  }
+}

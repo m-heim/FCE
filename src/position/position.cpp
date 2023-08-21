@@ -121,16 +121,8 @@ void Position::generatePieceMoves(MoveList &moves) {
     SquareIndex from = get_ls1b_index(knights);
     Bitboard attacks = knightAttacks[from] & theirs;
     Bitboard non_attacks = knightAttacks[from] & neitherOursAndTheirs;
-    while (attacks) {
-      SquareIndex to = get_ls1b_index(attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
-      attacks = bitboardUnsetSquare(attacks, to);
-    }
-    while (non_attacks) {
-      SquareIndex to = get_ls1b_index(non_attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
-      non_attacks = bitboardUnsetSquare(non_attacks, to);
-    }
+    moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+    moves.addMoves(from, non_attacks, MoveFlags::QUIET);
     knights = bitboardUnsetSquare(knights, from);
   }
   Bitboard king = bitboards[to_move][Piece::KING];
@@ -138,16 +130,8 @@ void Position::generatePieceMoves(MoveList &moves) {
     SquareIndex from = get_ls1b_index(king);
     Bitboard attacks = kingAttacks[from] & theirs;
     Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
-    while (attacks) {
-      SquareIndex to = get_ls1b_index(attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
-      attacks = bitboardUnsetSquare(attacks, to);
-    }
-    while (non_attacks) {
-      SquareIndex to = get_ls1b_index(non_attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
-      non_attacks = bitboardUnsetSquare(non_attacks, to);
-    }
+    moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+    moves.addMoves(from, non_attacks, MoveFlags::QUIET);
     king = bitboardUnsetSquare(king, from);
   }
   Bitboard bishop = bitboards[to_move][Piece::BISHOP];
@@ -157,16 +141,8 @@ void Position::generatePieceMoves(MoveList &moves) {
     Bitboard result = bishopMagics[from].getAttack(mask & oursOrTheirs);
     Bitboard attacks = result & theirs;
     Bitboard quiet = result & neitherOursAndTheirs;
-    while (attacks) {
-      SquareIndex to = get_ls1b_index(attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
-      attacks = bitboardUnsetSquare(attacks, to);
-    }
-    while (quiet) {
-      SquareIndex to = get_ls1b_index(quiet);
-      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
-      quiet = bitboardUnsetSquare(quiet, to);
-    }
+    moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+    moves.addMoves(from, quiet, MoveFlags::QUIET);
     bishop = bitboardUnsetSquare(bishop, from);
   }
   Bitboard rook = bitboards[to_move][Piece::ROOK];
@@ -176,16 +152,8 @@ void Position::generatePieceMoves(MoveList &moves) {
     Bitboard result = rookMagics[from].getAttack(mask & oursOrTheirs);
     Bitboard attacks = result & theirs;
     Bitboard quiet = result & neitherOursAndTheirs;
-    while (attacks) {
-      SquareIndex to = get_ls1b_index(attacks);
-      moves.push_back(serialize_move(from, to, MoveFlags::CAPTURE));
-      attacks = bitboardUnsetSquare(attacks, to);
-    }
-    while (quiet) {
-      SquareIndex to = get_ls1b_index(quiet);
-      moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
-      quiet = bitboardUnsetSquare(quiet, to);
-    }
+    moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+    moves.addMoves(from, quiet, MoveFlags::QUIET);
     rook = bitboardUnsetSquare(rook, from);
   }
 }

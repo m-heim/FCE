@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <limits>
 #include <string>
+#include <strings.h>
 
 #define MOVE_LIMIT_N 256
 
@@ -12,19 +13,6 @@ typedef std::int8_t Offset;
 typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
 typedef std::pair<Move, Evaluation> SearchInfo;
-
-class MoveList {
-public:
-  uint8_t count = 0;
-  std::array<Move, MOVE_LIMIT_N> moves;
-  inline Move get(uint8_t index) {
-    return moves[index];
-  }
-  inline void push_back(Move move) {
-    moves[count] = move;
-    count++;
-  }
-};
 
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
@@ -178,17 +166,6 @@ enum Square : SquareIndex {
   SQUARE_COUNT = SQUARE_H8 - SQUARE_A1 + 1,
   SQUARE_NONE
 };
-
-constexpr Move no_move = 65;
-
-class SquareInfo {
-public:
-  Color color;
-  Piece piece;
-  SquareInfo();
-  SquareInfo(Color colorVal, Piece pieceVal);
-};
-
 // INLINE FUNCTIONS FAST PROCESSING
 
 inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
@@ -214,6 +191,30 @@ std::string squareStringify(SquareIndex index);
 
 char piece_to_char(Piece piece);
 
+void printSquare(SquareIndex index);
+
+class MoveList {
+public:
+  uint8_t count = 0;
+  std::array<Move, MOVE_LIMIT_N> moves;
+  inline Move get(uint8_t index) {
+    return moves[index];
+  }
+  inline void push_back(Move move) {
+    moves[count] = move;
+    count++;
+  }
+  void addMoves(const SquareIndex &from, Bitboard &board, MoveFlags flags);
+};
+
+class SquareInfo {
+public:
+  Color color;
+  Piece piece;
+  SquareInfo();
+  SquareInfo(Color colorVal, Piece pieceVal);
+};
+
 SquareInfo charToSquareInfo(char piece);
 
-void printSquare(SquareIndex index);
+constexpr Move no_move = 65;

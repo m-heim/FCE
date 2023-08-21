@@ -8,6 +8,8 @@
 
 #define MAGICS_ARRAY_SIZE 200000
 
+typedef std::uint64_t Bitboard;
+
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
   return (board * magic) >> (64 - shift);
 }
