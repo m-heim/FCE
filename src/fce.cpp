@@ -51,6 +51,6 @@ int main(int argc, char **argv) {
             << "Eval" << std::to_string(bestMove.second) << std::endl;
   ;
 
-  printBitboard(bishopMagics[Square::SQUARE_D5].getAttack(fileB));
+  printBitboard(bishopMagics[Square::SQUARE_D4].getAttack(fileG));
   return 0;
 }
