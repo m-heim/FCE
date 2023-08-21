@@ -75,6 +75,7 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
   piece = pieceVal;
 }
 
+// NOTE inline this somehow
 void MoveList::addMoves(const SquareIndex &from, Bitboard &board,
                         MoveFlags flags) {
   while (board) {
