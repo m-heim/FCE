@@ -4,15 +4,27 @@
 #include <limits>
 #include <string>
 
-#define MOVE_LIMIT_N 218
+#define MOVE_LIMIT_N 256
 
 typedef std::int64_t Evaluation;
 typedef std::uint64_t Bitboard;
 typedef std::int8_t Offset;
 typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
-typedef std::array<Move, MOVE_LIMIT_N> MoveList;
 typedef std::pair<Move, Evaluation> SearchInfo;
+
+class MoveList {
+public:
+  uint8_t count = 0;
+  std::array<Move, MOVE_LIMIT_N> moves;
+  inline Move get(uint8_t index) {
+    return moves[index];
+  }
+  inline void push_back(Move move) {
+    moves[count] = move;
+    count++;
+  }
+};
 
 enum EvaluationLiterals : Evaluation {
   NEG_INF = -100000000000,
