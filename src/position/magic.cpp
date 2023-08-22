@@ -1,4 +1,5 @@
 #include "magic.hpp"
+#include "core.hpp"
 #include <iostream>
 
 std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
@@ -13,11 +14,29 @@ std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 void initGlobals() {
   initRayAttacks();
   initMagics();
+  initMasks();
+}
+
+std::array<Bitboard, Square::SQUARE_COUNT> bishopMasks;
+std::array<Bitboard, Square::SQUARE_COUNT> rookMasks;
+std::array<Bitboard, Square::SQUARE_COUNT> queenMasks;
+std::array<Bitboard, Square::SQUARE_COUNT> maskedSquare;
+std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
+
+void initMasks() {
+  for (SquareIndex index = SQUARE_A1; index <= Square::SQUARE_H8; index++) {
+    bishopMasks[index] = getBishopMask(index);
+    rookMasks[index] = getRookMask(index);
+    queenMasks[index] = getQueenMask(index);
+    maskedSquare[index] = bitboardSetSquare(index);
+    unmaskedSquare[index] = bitboardUnsetSquare(fullBitboard, index);
+  }
 }
 
 void initMagics() {
   uint64_t slidingIndex = 0;
-  for (SquareIndex index = SQUARE_A1; index <= SQUARE_H8; index++) {
+  for (SquareIndex index = Square::SQUARE_A1; index <= Square::SQUARE_H8;
+       index++) {
     Bitboard board = bitboardSetSquare(index);
     Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |
                               ((board & notFileH) << Direction::NORTH_EAST));
@@ -113,22 +132,6 @@ Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
   return attacks ^ rays[direction][square];
 }
 
-Bitboard getRookMask(SquareIndex index) {
-  // mask for magic, no borders, careful
-  return ((getFileMask(index) & notRank1 & notRank8) ^
-          (getRankMask(index) & notFileA & notFileH));
-}
-
-Bitboard getQueenMask(SquareIndex index) {
-  // mask for magic, no borders, careful
-  return (getRookMask(index) ^ getBishopMask(index));
-}
-
-Bitboard getBishopMask(SquareIndex index) {
-  // mask for magic, no borders, careful
-  return (getDiagonalMask(index) ^ getDiagonal2Mask(index)) & notBorders;
-}
-
 Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
   Bitboard result = 0ULL;
   std::array<RayDirection, 4> rookDirections = {
@@ -187,4 +190,20 @@ Bitboard getRankMask(SquareIndex index) {
 
 Bitboard getFileMask(SquareIndex index) {
   return fileA << (index & Square::SQUARE_H1);
+}
+
+Bitboard getRookMask(SquareIndex index) {
+  // mask for magic, no borders, careful
+  return ((getFileMask(index) & notRank1 & notRank8) ^
+          (getRankMask(index) & notFileA & notFileH));
+}
+
+Bitboard getQueenMask(SquareIndex index) {
+  // mask for magic, no borders, careful
+  return (getRookMask(index) ^ getBishopMask(index));
+}
+
+Bitboard getBishopMask(SquareIndex index) {
+  // mask for magic, no borders, careful
+  return (getDiagonalMask(index) ^ getDiagonal2Mask(index)) & notBorders;
 }

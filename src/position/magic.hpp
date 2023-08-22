@@ -31,15 +31,23 @@ extern std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> bishopMasks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> rookMasks;
+extern std::array<Bitboard, Square::SQUARE_COUNT> queenMasks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2>
     pawnDoublePushes;
+extern std::array<Bitboard, Square::SQUARE_COUNT> maskedSquare;
+extern std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
 
 void initGlobals();
 
+void initMasks();
 void initMagics();
 void initRayAttacks();
+
 Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex);
+
 Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
                        SquareIndex square);
 
