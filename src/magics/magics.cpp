@@ -1,5 +1,6 @@
 #include "bitboard.hpp"
 #include "core.hpp"
+#include "magic.hpp"
 #include "string.h"
 #include <iostream>
 #include <random>

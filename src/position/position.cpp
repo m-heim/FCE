@@ -1,6 +1,7 @@
 #include "position.hpp"
 #include "bitboard.hpp"
 #include "core.hpp"
+#include "magic.hpp"
 #include <chrono>
 #include <iostream>
 #include <string.h>

@@ -1,4 +1,5 @@
 #pragma once
+#include "bitboard.hpp"
 #include <array>
 #include <cstdint>
 #include <limits>
@@ -8,7 +9,6 @@
 #define MOVE_LIMIT_N 256
 
 typedef std::int64_t Evaluation;
-typedef std::uint64_t Bitboard;
 typedef std::int8_t Offset;
 typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
@@ -167,6 +167,29 @@ enum Square : SquareIndex {
   SQUARE_NONE
 };
 // INLINE FUNCTIONS FAST PROCESSING
+// bitboard manipulation
+inline Bitboard bitboardSetSquare(SquareIndex index) {
+  return 1ULL << index;
+}
+inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
+  return board & ~bitboardSetSquare(index);
+}
+inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
+  *board &= ~bitboardSetSquare(index);
+}
+
+// cpu inline
+inline SquareIndex get_ls1b_index(Bitboard bitboard) {
+  return ffsll(bitboard) - 1;
+}
+inline SquareIndex get_ms1b_index(Bitboard bitboard) {
+  // NOTE returns 63 if no bit is set
+  return 63 - __builtin_clzll(bitboard);
+}
+
+inline uint8_t bitboardGetHW(Bitboard bitboard) {
+  return std::popcount<Bitboard>(bitboard);
+}
 
 inline Move serialize_move(SquareIndex from, SquareIndex to, uint8_t flags) {
   return to | from << 6 | flags << 12;
@@ -204,7 +227,14 @@ public:
     moves[count] = move;
     count++;
   }
-  void addMoves(const SquareIndex &from, Bitboard &board, MoveFlags flags);
+  inline void addMoves(const SquareIndex &from, Bitboard &board,
+                       MoveFlags flags) {
+    while (board) {
+      SquareIndex to = get_ls1b_index(board);
+      push_back(serialize_move(from, to, flags));
+      board &= bitboardUnsetSquare(board, to);
+    }
+  }
 };
 
 class SquareInfo {
@@ -218,3 +248,8 @@ public:
 SquareInfo charToSquareInfo(char piece);
 
 constexpr Move no_move = 65;
+
+// Get all possible combinations of bits in a mask
+std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask);
+
+void printBitboard(Bitboard board);

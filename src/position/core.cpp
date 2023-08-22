@@ -76,11 +76,40 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
 }
 
 // NOTE inline this somehow
-void MoveList::addMoves(const SquareIndex &from, Bitboard &board,
-                        MoveFlags flags) {
-  while (board) {
-    SquareIndex to = get_ls1b_index(board);
-    push_back(serialize_move(from, to, flags));
-    board &= bitboardUnsetSquare(board, to);
+
+void printBitboard(Bitboard board) {
+  std::cout << "  A B C D E F G H" << std::endl;
+  for (int8_t row = 7; row >= 0; row--) {
+    std::cout << (char)('1' + row);
+    for (int8_t col = 0; col <= 7; col++) {
+      std::cout << " ";
+      uint8_t index = row * 8 + col;
+      std::cout << (board >> index) % 2;
+    }
+    std::cout << "\n";
   }
 }
+
+std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask) {
+  // https://stackoverflow.com/a/68061886
+  // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
+  // use carry bit while masking all non relevant bits to iterate through all
+  // subsets: Marcel van Kervinck Chess
+  std::array<Bitboard, 4096> result;
+  uint16_t i = 0;
+  for (Bitboard current = 0; current != mask;
+       current = ((current | ~mask) + 1) & mask) {
+    result[i] = current;
+    i++;
+  }
+  return result;
+}
+
+// void MoveList::addMoves(const SquareIndex &from, Bitboard &board,
+//                         MoveFlags flags) {
+//   while (board) {
+//     SquareIndex to = get_ls1b_index(board);
+//     push_back(serialize_move(from, to, flags));
+//     board &= bitboardUnsetSquare(board, to);
+//   }
+// }
