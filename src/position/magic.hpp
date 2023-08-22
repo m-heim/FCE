@@ -6,18 +6,18 @@
 typedef std::uint64_t Bitboard;
 
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
-  return (board * magic) >> (64 - shift);
+    return (board * magic) >> (64 - shift);
 }
 
 class Magic {
-public:
-  Bitboard *attacks;
-  Bitboard magic;
-  Bitboard mask;
-  uint8_t shift;
-  inline Bitboard getAttack(Bitboard occupation) {
-    return attacks[getMagicIndex(occupation & mask, magic, shift)];
-  }
+  public:
+    Bitboard *attacks;
+    Bitboard magic;
+    Bitboard mask;
+    uint8_t shift;
+    inline Bitboard getAttack(Bitboard occupation) {
+        return attacks[getMagicIndex(occupation & mask, magic, shift)];
+    }
 };
 
 extern std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;

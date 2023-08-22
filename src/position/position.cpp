@@ -8,197 +8,198 @@
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal,
                          Piece pieceVal) {
-  Piece piece = board[squareVal].piece;
-  Color color = board[squareVal].color;
-  board[squareVal].color = colorVal;
-  board[squareVal].piece = pieceVal;
+    Piece piece = board[squareVal].piece;
+    Color color = board[squareVal].color;
+    board[squareVal].color = colorVal;
+    board[squareVal].piece = pieceVal;
 
-  Bitboard mask = maskedSquare[squareVal];
-  bitboards[color][piece] &= ~mask;      // remove piece from bitboard
-  occupation[color] &= ~mask;            // remove piece from occupations
-  bitboards[colorVal][pieceVal] |= mask; // add piece to bitboard
-  occupation[colorVal] |= mask;          // add piece to occupations
+    Bitboard mask = maskedSquare[squareVal];
+    bitboards[color][piece] &= ~mask;      // remove piece from bitboard
+    occupation[color] &= ~mask;            // remove piece from occupations
+    bitboards[colorVal][pieceVal] |= mask; // add piece to bitboard
+    occupation[colorVal] |= mask;          // add piece to occupations
 }
 
 Position::Position() {
-  for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
-       square++) {
-    board[square].color = Color::NO_COLOR;
-    board[square].piece = Piece::NO_PIECE;
-  }
-  occupation[Color::WHITE] = 0ULL;
-  occupation[Color::BLACK] = 0ULL;
-  occupation[Color::NO_COLOR] = 0ULL;
-  memset(&bitboards, 0, sizeof(bitboards));
+    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
+         square++) {
+        board[square].color = Color::NO_COLOR;
+        board[square].piece = Piece::NO_PIECE;
+    }
+    occupation[Color::WHITE] = 0ULL;
+    occupation[Color::BLACK] = 0ULL;
+    occupation[Color::NO_COLOR] = 0ULL;
+    memset(&bitboards, 0, sizeof(bitboards));
 }
 
 std::string Position::stringify_board() {
-  std::string ret;
-  ret.append("  A B C D E F G H\n");
-  for (int8_t row = 7; row >= 0; row--) {
-    ret.push_back((char)('1' + row));
-    for (int8_t col = 0; col <= 7; col++) {
-      ret.push_back(' ');
-      SquareIndex square = row * 8 + col;
-      char piece = piece_to_char(board[square].piece);
-      if (board[square].color == Color::WHITE && piece != ' ') {
-        piece += 'A' - 'a';
-      }
-      ret.push_back(piece);
+    std::string ret;
+    ret.append("  A B C D E F G H\n");
+    for (int8_t row = 7; row >= 0; row--) {
+        ret.push_back((char)('1' + row));
+        for (int8_t col = 0; col <= 7; col++) {
+            ret.push_back(' ');
+            SquareIndex square = row * 8 + col;
+            char piece = piece_to_char(board[square].piece);
+            if (board[square].color == Color::WHITE && piece != ' ') {
+                piece += 'A' - 'a';
+            }
+            ret.push_back(piece);
+        }
+        ret.push_back('\n');
     }
-    ret.push_back('\n');
-  }
-  return ret;
+    return ret;
 }
 
 SquareInfo::SquareInfo() {
 }
 
 inline Evaluation Position::evaluate(void) {
-  Evaluation eval = 0;
-  eval += evaluateMaterial();
-  eval += evaluatePosition();
-  return eval;
+    Evaluation eval = 0;
+    eval += evaluateMaterial();
+    eval += evaluatePosition();
+    return eval;
 }
 
 inline Evaluation Position::evaluateMaterial(void) {
-  std::array<Evaluation, Piece::KING + 1> values;
-  values[Piece::PAWN] = 100;
-  values[Piece::KNIGHT] = 300;
-  values[Piece::BISHOP] = 320;
-  values[Piece::ROOK] = 450;
-  values[Piece::QUEEN] = 900;
-  values[Piece::KING] = 2000000;
-  Evaluation eval = 0;
+    std::array<Evaluation, Piece::KING + 1> values;
+    values[Piece::PAWN] = 100;
+    values[Piece::KNIGHT] = 300;
+    values[Piece::BISHOP] = 320;
+    values[Piece::ROOK] = 450;
+    values[Piece::QUEEN] = 900;
+    values[Piece::KING] = 2000000;
+    Evaluation eval = 0;
 
-  // NOTE Assuming king is top
-  for (uint8_t piece = 0; piece <= Piece::KING; piece++) {
-    eval += (bitboardGetHW(bitboards[Color::WHITE][piece]) -
-             bitboardGetHW(bitboards[Color::BLACK][piece])) *
-            values[piece];
-    /*if (piece == Piece::PAWN) {
-      for (uint8_t col = 0; col < 8; col++) {
-        eval +=
-            (bitboardGetHW(bitboards[Color::WHITE][piece] & fileAttacks[col]) -
-             bitboardGetHW(bitboards[Color::BLACK][piece] & fileAttacks[col])) *
-            -50;
-      }
-    }*/
-  }
-  return to_move == Color::WHITE ? eval : -eval;
+    // NOTE Assuming king is top
+    for (uint8_t piece = 0; piece <= Piece::KING; piece++) {
+        eval += (bitboardGetHW(bitboards[Color::WHITE][piece]) -
+                 bitboardGetHW(bitboards[Color::BLACK][piece])) *
+                values[piece];
+        /*if (piece == Piece::PAWN) {
+          for (uint8_t col = 0; col < 8; col++) {
+            eval +=
+                (bitboardGetHW(bitboards[Color::WHITE][piece] &
+        fileAttacks[col]) - bitboardGetHW(bitboards[Color::BLACK][piece] &
+        fileAttacks[col])) * -50;
+          }
+        }*/
+    }
+    return to_move == Color::WHITE ? eval : -eval;
 }
 
 Evaluation negaMax(Position position, uint16_t depth) {
-  if (depth == 0 || !position.kingExists()) {
-    return position.evaluate();
-  }
-  Evaluation max = EvaluationLiterals::NEG_INF;
-  MoveList moves;
-  position.generateMoves(moves);
-  // std::cout << "Found" << moves.size() << "moves" << std::endl;
-  for (uint8_t i = 0; i < moves.count; i++) {
-    Position p = position;
-    p.makeMove(moves.get(i));
-    // std::cout << p.stringify_board() << std::endl;
-    Evaluation current = -negaMax(p, depth - 1);
-    // std::cout << current << std::endl;
-    if (current > max) {
-      // std::cout << "BETTER MOVE" << std::endl;
-      max = current;
+    if (depth == 0 || !position.kingExists()) {
+        return position.evaluate();
     }
-  }
-  return max;
+    Evaluation max = EvaluationLiterals::NEG_INF;
+    MoveList moves;
+    position.generateMoves(moves);
+    // std::cout << "Found" << moves.size() << "moves" << std::endl;
+    for (uint8_t i = 0; i < moves.count; i++) {
+        Position p = position;
+        p.makeMove(moves.get(i));
+        // std::cout << p.stringify_board() << std::endl;
+        Evaluation current = -negaMax(p, depth - 1);
+        // std::cout << current << std::endl;
+        if (current > max) {
+            // std::cout << "BETTER MOVE" << std::endl;
+            max = current;
+        }
+    }
+    return max;
 }
 
 Move negaMaxRoot(Position position, uint16_t depth) {
-  if (depth == 0 || !position.kingExists()) {
-    return position.evaluate();
-  }
-  Move bestMove = no_move;
-  MoveList moves;
-  Evaluation max = EvaluationLiterals::NEG_INF;
-  Move m;
-  position.generateMoves(moves);
-  // std::cout << "Found" << moves.size() << "moves" << std::endl;
-  for (uint8_t i = 0; i < moves.count; i++) {
-    Position p = position;
-    m = p.makeMove(moves.get(i));
-    Evaluation current = -negaMax(p, depth - 1);
-    std::cout << current << std::endl;
-    if (current > max) {
-      max = current;
-      bestMove = m;
+    if (depth == 0 || !position.kingExists()) {
+        return position.evaluate();
     }
-  }
-  return bestMove;
+    Move bestMove = no_move;
+    MoveList moves;
+    Evaluation max = EvaluationLiterals::NEG_INF;
+    Move m;
+    position.generateMoves(moves);
+    // std::cout << "Found" << moves.size() << "moves" << std::endl;
+    for (uint8_t i = 0; i < moves.count; i++) {
+        Position p = position;
+        m = p.makeMove(moves.get(i));
+        Evaluation current = -negaMax(p, depth - 1);
+        std::cout << current << std::endl;
+        if (current > max) {
+            max = current;
+            bestMove = m;
+        }
+    }
+    return bestMove;
 }
 
 std::array<std::uint64_t, 40> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft) {
-  // std::cout << "At depth" << std::to_string(depthleft) << std::endl;
-  // std::cout << position->stringify_board() << alpha << beta << std::endl;
-  positionsEvaluated[depthleft] += 1;
-  if (depthleft == 0) {
-    return position->evaluate();
-  }
-  MoveList moves;
-  position->generateMoves(moves);
-  Evaluation score;
-  for (uint8_t i = 0; i < moves.count; i++) {
-    Position p = *position;
-    // if the Move made by us leads to the capture of the king
-    if (!p.makeMove(moves.get(i))) {
-      return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE
-                                       : EvaluationLiterals::INVALID_MOVE;
+    // std::cout << "At depth" << std::to_string(depthleft) << std::endl;
+    // std::cout << position->stringify_board() << alpha << beta << std::endl;
+    positionsEvaluated[depthleft] += 1;
+    if (depthleft == 0) {
+        return position->evaluate();
     }
-    score = -alphaBeta(&p, -beta, -alpha, depthleft - 1);
-    if (score == -EvaluationLiterals::INVALID_MOVE) {
-      continue;
+    MoveList moves;
+    position->generateMoves(moves);
+    Evaluation score;
+    for (uint8_t i = 0; i < moves.count; i++) {
+        Position p = *position;
+        // if the Move made by us leads to the capture of the king
+        if (!p.makeMove(moves.get(i))) {
+            return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE
+                                             : EvaluationLiterals::INVALID_MOVE;
+        }
+        score = -alphaBeta(&p, -beta, -alpha, depthleft - 1);
+        if (score == -EvaluationLiterals::INVALID_MOVE) {
+            continue;
+        }
+        if (score >= beta) {
+            return beta; //  fail hard beta-cutoff
+        }
+        if (score > alpha) {
+            // std::cout << p.stringify_board() << std::endl;
+            alpha = score; // alpha acts like max in MiniMax
+            // std::cout << "Found a better Move" << p.stringify_board() <<
+            // std::endl;
+        }
     }
-    if (score >= beta) {
-      return beta; //  fail hard beta-cutoff
-    }
-    if (score > alpha) {
-      // std::cout << p.stringify_board() << std::endl;
-      alpha = score; // alpha acts like max in MiniMax
-      // std::cout << "Found a better Move" << p.stringify_board() << std::endl;
-    }
-  }
-  return alpha;
+    return alpha;
 }
 
 SearchInfo search(Position *position, uint16_t depth) {
-  auto start = std::chrono::high_resolution_clock::now();
-  MoveList moves;
-  position->generateMoves(moves);
-  std::cout << std::to_string(moves.count) << std::endl;
-  Evaluation best = EvaluationLiterals::NEG_INF;
-  Move bestMove = no_move;
-  for (uint8_t i = 0; i < moves.count; i++) {
-    Position p = *position;
-    Move m = moves.get(i);
-    p.makeMove(m);
-    Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF,
-                                    EvaluationLiterals::POS_INF, depth);
-    if (current > best) {
-      best = current;
-      bestMove = m;
+    auto start = std::chrono::high_resolution_clock::now();
+    MoveList moves;
+    position->generateMoves(moves);
+    std::cout << std::to_string(moves.count) << std::endl;
+    Evaluation best = EvaluationLiterals::NEG_INF;
+    Move bestMove = no_move;
+    for (uint8_t i = 0; i < moves.count; i++) {
+        Position p = *position;
+        Move m = moves.get(i);
+        p.makeMove(m);
+        Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF,
+                                        EvaluationLiterals::POS_INF, depth);
+        if (current > best) {
+            best = current;
+            bestMove = m;
+        }
     }
-  }
-  uint64_t positions = 0;
-  for (int i = 0; i < 40; i++) {
-    positions += positionsEvaluated[i];
-    std::cout << "Depth" << std::to_string(i) << " "
-              << std::to_string(positionsEvaluated[i]) << std::endl;
-  }
-  double rate = (double)positions /
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::high_resolution_clock::now() - start)
-                    .count() *
-                1000;
-  std::cout << "Total of:\n"
-            << std::to_string(positions) << "\nat:\n"
-            << std::to_string(rate) << "MP/s" << std::endl;
-  return std::pair<Move, Evaluation>(bestMove, best);
+    uint64_t positions = 0;
+    for (int i = 0; i < 40; i++) {
+        positions += positionsEvaluated[i];
+        std::cout << "Depth" << std::to_string(i) << " "
+                  << std::to_string(positionsEvaluated[i]) << std::endl;
+    }
+    double rate = (double)positions /
+                  std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      std::chrono::high_resolution_clock::now() - start)
+                      .count() *
+                  1000;
+    std::cout << "Total of:\n"
+              << std::to_string(positions) << "\nat:\n"
+              << std::to_string(rate) << "MP/s" << std::endl;
+    return std::pair<Move, Evaluation>(bestMove, best);
 }
