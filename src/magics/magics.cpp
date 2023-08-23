@@ -1,7 +1,7 @@
 #include "bitboard.hpp"
 #include "core.hpp"
 #include "magic.hpp"
-#include "string.h"
+#include <cstring>
 #include <iostream>
 #include <random>
 #define NUM_POS_OCCUPANCIES 4096
