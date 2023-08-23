@@ -51,3 +51,8 @@ constexpr Bitboard diagonal2 = 0x0102040810204080;
 
 constexpr Bitboard borders = rank1 | rank8 | fileA | fileH;
 constexpr Bitboard notBorders = ~borders;
+
+constexpr Bitboard center = (fileD | fileE) & (rank4 | rank5);
+constexpr Bitboard notCenter = ~center;
+constexpr Bitboard extendedCenter =
+    (fileC | fileD | fileE | fileF) & (rank3 | rank4 | rank5 | rank6);
