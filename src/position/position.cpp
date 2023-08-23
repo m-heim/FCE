@@ -51,41 +51,40 @@ std::string Position::stringify_board() {
     return ret;
 }
 
-SquareInfo::SquareInfo() {
-}
-
-inline Evaluation Position::evaluate(void) {
+inline Evaluation Position::evaluate() {
     Evaluation eval = 0;
     eval += evaluateMaterial();
     eval += evaluatePosition();
     return eval;
 }
 
-inline Evaluation Position::evaluateMaterial(void) {
-    std::array<Evaluation, Piece::KING + 1> values;
-    values[Piece::PAWN] = 100;
-    values[Piece::KNIGHT] = 300;
-    values[Piece::BISHOP] = 320;
-    values[Piece::ROOK] = 450;
-    values[Piece::QUEEN] = 900;
-    values[Piece::KING] = 2000000;
-    Evaluation eval = 0;
-
+inline Evaluation Position::evaluateMaterial() {
     // NOTE Assuming king is top
+    Evaluation eval = EvaluationLiterals::EVEN;
     for (uint8_t piece = 0; piece <= Piece::KING; piece++) {
         eval += (bitboardGetHW(bitboards[Color::WHITE][piece]) -
                  bitboardGetHW(bitboards[Color::BLACK][piece])) *
-                values[piece];
-        /*if (piece == Piece::PAWN) {
-          for (uint8_t col = 0; col < 8; col++) {
-            eval +=
-                (bitboardGetHW(bitboards[Color::WHITE][piece] &
-        fileAttacks[col]) - bitboardGetHW(bitboards[Color::BLACK][piece] &
-        fileAttacks[col])) * -50;
-          }
-        }*/
+                evaluations[piece];
+        if (piece == Piece::PAWN) {
+            // doubled pawns
+            for (uint8_t col = 0; col < Square::SQUARE_A2; col++) {
+                Bitboard file = fileAttacks[col];
+                eval -=
+                    (std::min<int>(
+                        0, bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] &
+                                         file) -
+                               1)) *
+                    50;
+                eval +=
+                    (std::min<int>(
+                        0, bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] &
+                                         file) -
+                               1)) *
+                    50;
+            }
+        }
     }
-    return to_move == Color::WHITE ? eval : -eval;
+    return (to_move == Color::WHITE) ? eval : -eval;
 }
 
 Evaluation negaMax(Position position, uint16_t depth) {
@@ -117,7 +116,7 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     Move bestMove = no_move;
     MoveList moves;
     Evaluation max = EvaluationLiterals::NEG_INF;
-    Move m;
+    Move m = no_move;
     position.generateMoves(moves);
     // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
@@ -136,26 +135,29 @@ Move negaMaxRoot(Position position, uint16_t depth) {
 std::array<std::uint64_t, 40> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft) {
-    // std::cout << "At depth" << std::to_string(depthleft) << std::endl;
-    // std::cout << position->stringify_board() << alpha << beta << std::endl;
-    positionsEvaluated[depthleft] += 1;
+    positionsEvaluated.at(depthleft) += 1;
     if (depthleft == 0) {
         return position->evaluate();
     }
     MoveList moves;
     position->generateMoves(moves);
-    Evaluation score;
+    Evaluation score = 0;
+    bool gotChecked = false;
     for (uint8_t i = 0; i < moves.count; i++) {
-        Position p = *position;
+        Position positionWithMyMove = *position;
         // if the Move made by us leads to the capture of the king
-        if (!p.makeMove(moves.get(i))) {
-            return p.to_move == Color::BLACK ? -EvaluationLiterals::INVALID_MOVE
-                                             : EvaluationLiterals::INVALID_MOVE;
+        if (!positionWithMyMove.makeMove(moves.get(i))) {
+            // notify the callee
+            return EvaluationLiterals::INVALID_MOVE;
         }
-        score = -alphaBeta(&p, -beta, -alpha, depthleft - 1);
+        score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
         if (score == -EvaluationLiterals::INVALID_MOVE) {
+            // if we are in check
+            alpha = EvaluationLiterals::NEG_INF;
+            gotChecked = true;
             continue;
         }
+        // std::cout << p.stringify_board() << std::endl;
         if (score >= beta) {
             return beta; //  fail hard beta-cutoff
         }

@@ -50,6 +50,11 @@ inline Evaluation Position::evaluatePosition(void) {
 inline bool Position::makeMove(Move m) {
     SquareIndex from = moveGetFrom(m);
     SquareIndex to = moveGetTo(m);
+    Color opponent = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
+    // if we take the opponents king
+    if (bitboardSetSquare(to) == bitboards[opponent][Piece::KING]) {
+        return false;
+    }
     uint8_t flags = moveGetFlags(m);
     SquareInfo movingPiece = board[from];
     if (flags == MoveFlags::QUIET) {

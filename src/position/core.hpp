@@ -169,6 +169,12 @@ enum Square : SquareIndex {
 };
 // INLINE FUNCTIONS FAST PROCESSING
 // bitboard manipulation
+
+constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
+    EvaluationLiterals::PAWN_VAL,   EvaluationLiterals::KNIGHT_VAL,
+    EvaluationLiterals::BISHOP_VAL, EvaluationLiterals::ROOK_VAL,
+    EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
+
 inline Bitboard bitboardSetSquare(SquareIndex index) {
     return 1ULL << index;
 }
@@ -242,7 +248,7 @@ class SquareInfo {
   public:
     Color color;
     Piece piece;
-    SquareInfo();
+    SquareInfo() = default;
     SquareInfo(Color colorVal, Piece pieceVal);
 };
 
