@@ -111,6 +111,18 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         moves.addMoves(from, quiet, MoveFlags::QUIET);
         rook &= unmaskedSquare[from];
     }
+    Bitboard queen = bitboards[to_move][Piece::QUEEN];
+    while (queen) {
+        SquareIndex from = get_ls1b_index(queen);
+        Bitboard result =
+            rookMagics[from].getAttack(rookMasks[from] & oursOrTheirs) |
+            bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
+        Bitboard attacks = result & theirs;
+        Bitboard quiet = result & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet, MoveFlags::QUIET);
+        queen &= unmaskedSquare[from];
+    }
 }
 
 inline void Position::generatePawnMoves(MoveList &moves) {
