@@ -3,3 +3,7 @@
 build
 .vscode/launch.json
 gmon.out
+documentation/*
+!documentation/documentation.tex
+!documentation/documentation.pdf
+!documentation/documentation.aux
