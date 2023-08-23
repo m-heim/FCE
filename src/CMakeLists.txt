@@ -1,6 +1,6 @@
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -finline-limit=1000)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*,performance-*,modernize-*,bugprone-*,cppcoreguidelines-*)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*,performance-*,modernize-*,bugprone-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-pro-bounds-pointer-arithmetic)
 add_subdirectory(position)
 add_subdirectory(magics)
 target_link_libraries(magics position)
