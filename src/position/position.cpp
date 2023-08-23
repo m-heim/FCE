@@ -143,6 +143,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
     position->generateMoves(moves);
     Evaluation score = 0;
     bool gotChecked = false;
+    uint8_t legalMoves = 0;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position positionWithMyMove = *position;
         // if the Move made by us leads to the capture of the king
@@ -153,10 +154,10 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
         score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
         if (score == -EvaluationLiterals::INVALID_MOVE) {
             // if we are in check
-            alpha = EvaluationLiterals::NEG_INF;
             gotChecked = true;
             continue;
         }
+        legalMoves++;
         // std::cout << p.stringify_board() << std::endl;
         if (score >= beta) {
             return beta; //  fail hard beta-cutoff
@@ -167,6 +168,9 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
             // std::cout << "Found a better Move" << p.stringify_board() <<
             // std::endl;
         }
+    }
+    if (legalMoves == 0) {
+      return EvaluationLiterals::NEG_INF;
     }
     return alpha;
 }
