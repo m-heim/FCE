@@ -6,23 +6,28 @@
 char piece_to_char(Piece piece) {
     if (piece == Piece::PAWN) {
         return 'p';
-    } else if (piece == Piece::KNIGHT) {
-        return 'n';
-    } else if (piece == Piece::BISHOP) {
-        return 'b';
-    } else if (piece == Piece::ROOK) {
-        return 'r';
-    } else if (piece == Piece::QUEEN) {
-        return 'q';
-    } else if (piece == Piece::KING) {
-        return 'k';
-    } else if (piece == Piece::NO_PIECE) {
-        return ' ';
-    } else {
-        std::cerr << "Invalid input when converting piece to character"
-                  << std::endl;
-        exit(1);
     }
+    if (piece == Piece::KNIGHT) {
+        return 'n';
+    }
+    if (piece == Piece::BISHOP) {
+        return 'b';
+    }
+    if (piece == Piece::ROOK) {
+        return 'r';
+    }
+    if (piece == Piece::QUEEN) {
+        return 'q';
+    }
+    if (piece == Piece::KING) {
+        return 'k';
+    }
+    if (piece == Piece::NO_PIECE) {
+        return ' ';
+    }
+    std::cerr << "Invalid input when converting piece to character"
+              << std::endl;
+    exit(1);
 }
 
 SquareInfo charToSquareInfo(char piece) {
@@ -75,8 +80,6 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
     piece = pieceVal;
 }
 
-// NOTE inline this somehow
-
 void printBitboard(Bitboard board) {
     std::cout << "  A B C D E F G H" << std::endl;
     for (int8_t row = 7; row >= 0; row--) {
@@ -90,17 +93,17 @@ void printBitboard(Bitboard board) {
     }
 }
 
-std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask) {
+std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask) {
     // https://stackoverflow.com/a/68061886
     // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
-    // use carry bit while masking all non relevant bits to iterate through all
-    // subsets: Marcel van Kervinck Chess
-    std::array<Bitboard, 4096> result;
-    uint16_t i = 0;
+    // use carry bit while masking all non relevant bits to iterate through
+    // all subsets: Marcel van Kervinck Chess
+    std::array<Bitboard, BITBOARD_SUBSETS_N> result{};
+    uint16_t index = 0;
     for (Bitboard current = 0; current != mask;
          current = ((current | ~mask) + 1) & mask) {
-        result[i] = current;
-        i++;
+        result[index] = current;
+        index++;
     }
     return result;
 }

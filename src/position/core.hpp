@@ -7,6 +7,7 @@
 #include <strings.h>
 
 #define MOVE_LIMIT_N 256
+#define BITBOARD_SUBSETS_N 4096
 
 typedef std::int64_t Evaluation;
 typedef std::int8_t Offset;
@@ -250,6 +251,6 @@ SquareInfo charToSquareInfo(char piece);
 constexpr Move no_move = 65;
 
 // Get all possible combinations of bits in a mask
-std::array<Bitboard, 4096> getBitboardSubsets(Bitboard mask);
+std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask);
 
 void printBitboard(Bitboard board);

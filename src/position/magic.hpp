@@ -4,9 +4,8 @@
 #define MAGICS_ARRAY_SIZE 200000
 
 typedef std::uint64_t Bitboard;
-
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
-    return (board * magic) >> (64 - shift);
+    return (board * magic) >> shift;
 }
 
 class Magic {
@@ -15,8 +14,11 @@ class Magic {
     Bitboard magic;
     Bitboard mask;
     uint8_t shift;
+    inline Bitboard getMagicIndex(Bitboard board) {
+        return (board * magic) >> shift;
+    }
     inline Bitboard getAttack(Bitboard occupation) {
-        return attacks[getMagicIndex(occupation & mask, magic, shift)];
+        return attacks[getMagicIndex(occupation & mask)];
     }
 };
 
