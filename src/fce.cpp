@@ -55,7 +55,6 @@ int main(int argc, char **argv) {
               << squareStringify(moveGetTo(bestMove.first)) << std::endl
               << "Eval" << std::to_string(bestMove.second) << std::endl;
     ;
-
-    printBitboard(bishopMagics[Square::SQUARE_D4].getAttack(fileG));
+    // printRays(Square::SQUARE_F2);
     return 0;
 }
