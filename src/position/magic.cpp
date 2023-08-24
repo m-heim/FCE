@@ -2,6 +2,73 @@
 #include "core.hpp"
 #include <iostream>
 
+// PRIMITIVES
+Bitboard getKnightAttacks(Bitboard board) {
+    // Generate all possible knight moves from knights
+    return ((board << Direction::NNE | board >> -Direction::SSE) & notFileA) |
+           ((board << Direction::NNW | board >> -Direction::SSW) & notFileH) |
+           ((board << Direction::WWN | board >> -Direction::WWS) & notFileH &
+            notFileG) |
+           ((board << Direction::EEN | board >> -Direction::EES) & notFileA &
+            notFileB);
+}
+
+Bitboard getKingAttacks(Bitboard board) {
+    Bitboard cols =
+        (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
+    return ((cols >> -Direction::WEST) & notFileH) |
+           ((cols << Direction::EAST) & notFileA) | cols;
+}
+
+Bitboard getDiagonalMask(SquareIndex index) {
+    int8_t toShift =
+        ((index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
+    return toShift >= 0 ? diagonal >> toShift : diagonal << -toShift;
+}
+
+Bitboard getDiagonal2Mask(SquareIndex index) {
+    int8_t toShift =
+        (Square::SQUARE_H1 - (index & Square::SQUARE_H1) - (index >> 3)) *
+        Square::SQUARE_A2;
+    return toShift >= 0 ? diagonal2 >> toShift : diagonal2 << -toShift;
+}
+
+Bitboard getRankMask(SquareIndex index) {
+    return rank1 << (index & Square::SQUARE_A8);
+}
+
+Bitboard getFileMask(SquareIndex index) {
+    return fileA << (index & Square::SQUARE_H1);
+}
+
+Bitboard getRookMask(SquareIndex index) {
+    // mask for magic, no borders, careful
+    return ((getFileMask(index) & notRank1 & notRank8) ^
+            (getRankMask(index) & notFileA & notFileH));
+}
+
+Bitboard getQueenMask(SquareIndex index) {
+    // mask for magic, no borders, careful
+    return (getRookMask(index) ^ getBishopMask(index));
+}
+
+Bitboard getBishopMask(SquareIndex index) {
+    // mask for magic, no borders, careful
+    return (getDiagonalMask(index) ^ getDiagonal2Mask(index)) & notBorders;
+}
+
+void initPrimitives() {
+    for (SquareIndex index = SQUARE_A1; index <= Square::SQUARE_H8; index++) {
+        bishopMasks[index] = getBishopMask(index);
+        rookMasks[index] = getRookMask(index);
+        queenMasks[index] = getQueenMask(index);
+        maskedSquare[index] = bitboardSetSquare(index);
+        unmaskedSquare[index] = bitboardUnsetSquare(fullBitboard, index);
+        rankAttacks[index] = rank1 << (index & Square::SQUARE_A8);
+        fileAttacks[index] = fileA << (index & Square::SQUARE_H1);
+    }
+}
+
 std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
 std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
@@ -11,27 +78,11 @@ std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 
-void initGlobals() {
-    initRayAttacks();
-    initMagics();
-    initMasks();
-}
-
 std::array<Bitboard, Square::SQUARE_COUNT> bishopMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> rookMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> queenMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> maskedSquare;
 std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
-
-void initMasks() {
-    for (SquareIndex index = SQUARE_A1; index <= Square::SQUARE_H8; index++) {
-        bishopMasks[index] = getBishopMask(index);
-        rookMasks[index] = getRookMask(index);
-        queenMasks[index] = getQueenMask(index);
-        maskedSquare[index] = bitboardSetSquare(index);
-        unmaskedSquare[index] = bitboardUnsetSquare(fullBitboard, index);
-    }
-}
 
 void initMagics() {
     uint64_t slidingIndex = 0;
@@ -85,7 +136,7 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
         start[hash] = attacks.at(index);
     }
     *magicIndex += combinations;
-    std::cout << std::to_string(*magicIndex) << std::endl;
+    // std::cout << std::to_string(*magicIndex) << std::endl;
     return result;
 }
 
@@ -119,8 +170,12 @@ void initRayAttacks() {
         rays[RayDirection::NORTH_EAST_RAY][square] = northEast;
         rays[RayDirection::SOUTH_WEST_RAY][square] = southWest;
         rays[RayDirection::SOUTH_EAST_RAY][square] = southEast;
-        rankAttacks[square] = rank1 << (square & Square::SQUARE_A8);
-        fileAttacks[square] = fileA << (square >> 3);
+    }
+}
+
+void printRays(SquareIndex index) {
+    for (uint8_t d = 0; d < RayDirection::RAY_COUNT; d++) {
+        printBitboard(rays[d][index]);
     }
 }
 
@@ -152,62 +207,14 @@ Bitboard getBishopAttacks(SquareIndex index, Bitboard occupancy) {
     std::array<RayDirection, 4> rookDirections = {
         RayDirection::SOUTH_EAST_RAY, RayDirection::NORTH_EAST_RAY,
         RayDirection::NORTH_WEST_RAY, RayDirection::SOUTH_WEST_RAY};
-    for (Offset i = 0; i < 4; i++) {
-        result |= getRayAttacks(occupancy, rookDirections[i], index);
+    for (RayDirection direction : rookDirections) {
+        result |= getRayAttacks(occupancy, direction, index);
     }
     return result;
 }
 
-Bitboard getKnightAttacks(Bitboard board) {
-    // Generate all possible knight moves from knights
-    return ((board << Direction::NNE | board >> -Direction::SSE) & notFileA) |
-           ((board << Direction::NNW | board >> -Direction::SSW) & notFileH) |
-           ((board << Direction::WWN | board >> -Direction::WWS) & notFileH &
-            notFileG) |
-           ((board << Direction::EEN | board >> -Direction::EES) & notFileA &
-            notFileB);
-}
-
-Bitboard getKingAttacks(Bitboard board) {
-    Bitboard cols =
-        (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
-    return ((cols >> -Direction::WEST) & notFileH) |
-           ((cols << Direction::EAST) & notFileA) | cols;
-}
-
-Bitboard getDiagonalMask(SquareIndex index) {
-    int8_t toShift =
-        ((index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
-    return toShift >= 0 ? diagonal >> toShift : diagonal << -toShift;
-}
-
-Bitboard getDiagonal2Mask(SquareIndex index) {
-    int8_t toShift =
-        (Square::SQUARE_H1 - (index & Square::SQUARE_H1) - (index >> 3)) *
-        Square::SQUARE_A2;
-    return toShift >= 0 ? diagonal2 >> toShift : diagonal2 << -toShift;
-}
-
-Bitboard getRankMask(SquareIndex index) {
-    return rank1 << (index & Square::SQUARE_A8);
-}
-
-Bitboard getFileMask(SquareIndex index) {
-    return fileA << (index & Square::SQUARE_H1);
-}
-
-Bitboard getRookMask(SquareIndex index) {
-    // mask for magic, no borders, careful
-    return ((getFileMask(index) & notRank1 & notRank8) ^
-            (getRankMask(index) & notFileA & notFileH));
-}
-
-Bitboard getQueenMask(SquareIndex index) {
-    // mask for magic, no borders, careful
-    return (getRookMask(index) ^ getBishopMask(index));
-}
-
-Bitboard getBishopMask(SquareIndex index) {
-    // mask for magic, no borders, careful
-    return (getDiagonalMask(index) ^ getDiagonal2Mask(index)) & notBorders;
+void initGlobals() {
+    initMasks();
+    initRayAttacks();
+    initMagics();
 }
