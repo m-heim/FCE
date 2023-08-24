@@ -70,18 +70,26 @@ inline Evaluation Position::evaluateMaterial() {
             for (uint8_t col = 0; col < Square::SQUARE_A2; col++) {
                 Bitboard file = fileAttacks[col];
                 eval -=
-                    (std::min<int>(
+                    (std::max<int>(
                         0, bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] &
                                          file) -
                                1)) *
                     50;
                 eval +=
-                    (std::min<int>(
+                    (std::max<int>(
                         0, bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] &
                                          file) -
                                1)) *
                     50;
             }
+        }
+        if (piece == Piece::BISHOP) {
+            Evaluation whiteAdditionalBishops = std::max<int>(
+                0, bitboardGetHW(bitboards[Color::WHITE][Piece::BISHOP]) - 1);
+            Evaluation blackAdditionalBishops = std::max<int>(
+                0, bitboardGetHW(bitboards[Color::BLACK][Piece::BISHOP]) - 1);
+            eval += whiteAdditionalBishops * 200;
+            eval -= blackAdditionalBishops * 200;
         }
     }
     return (to_move == Color::WHITE) ? eval : -eval;
@@ -135,6 +143,11 @@ Move negaMaxRoot(Position position, uint16_t depth) {
 std::array<std::uint64_t, 40> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft) {
+    // alpha is the best score we can achieve. -> neg inf at start, if we find a
+    // better position we update alpha to this new position and keep searching
+    // for a better move beta is the best score the opponent can achieve -> pos
+    // inf at start, if the position is better for us than what the opponent can
+    // achieve somewhere else stop searching and return opponents beta
     positionsEvaluated.at(depthleft) += 1;
     if (depthleft == 0) {
         return position->evaluate();
@@ -152,25 +165,28 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
             return EvaluationLiterals::INVALID_MOVE;
         }
         score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
+        // we are in check,
         if (score == -EvaluationLiterals::INVALID_MOVE) {
-            // if we are in check
             gotChecked = true;
             continue;
         }
+        // increment legal move counter
         legalMoves++;
         // std::cout << p.stringify_board() << std::endl;
+        // opponent has a better move in the search tree already so
         if (score >= beta) {
             return beta; //  fail hard beta-cutoff
         }
+        // if the move found is better than the best score we can achieve update
+        // alpha
         if (score > alpha) {
             // std::cout << p.stringify_board() << std::endl;
             alpha = score; // alpha acts like max in MiniMax
-            // std::cout << "Found a better Move" << p.stringify_board() <<
-            // std::endl;
         }
     }
+    // no legal moves found, return checkmate
     if (legalMoves == 0) {
-      return EvaluationLiterals::NEG_INF;
+        return EvaluationLiterals::NEG_INF;
     }
     return alpha;
 }
