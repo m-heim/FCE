@@ -68,7 +68,7 @@ inline bool Position::makeMove(Move m) {
     plies += 1;
     to_move = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
 
-    return kingExists();
+    return true;
 }
 
 inline void Position::generatePieceMoves(MoveList &moves) {
