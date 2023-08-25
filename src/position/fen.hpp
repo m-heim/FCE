@@ -4,4 +4,4 @@
 #include "magic.hpp"
 #include "position.hpp"
 
-Position parse_fen(std::string fen);
+Position parse_fen(const std::string &fen);
