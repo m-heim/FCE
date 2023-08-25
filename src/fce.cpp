@@ -56,10 +56,11 @@ int main(int argc, char **argv) {
     ;
     while (true) {
         std::string input;
-        std::cout << "s - search, m - make a move" << std::endl;
+        std::cout << "s - search, m - make a move, d - debug, e - exit"
+                  << std::endl;
         std::cin >> input;
         if (input == "s") {
-            int innerDepth;
+            int innerDepth = 0;
             std::string bufDepth;
             std::cout << "depth" << std::endl;
             std::cin >> bufDepth;
@@ -72,8 +73,15 @@ int main(int argc, char **argv) {
         } else if (input == "m") {
             std::string buf;
             std::cin >> buf;
-        } else if (input == "q") {
+        } else if (input == "e") {
             exit(0);
+        } else if (input == "d") {
+            std::cout << "n - knight attacks" << std::endl;
+            std::string buf;
+            std::cin >> buf;
+            if (buf == "n") {
+                printKnightAttacks();
+            }
         } else {
             exit(1);
         }
