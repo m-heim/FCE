@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
     fen_file_stream.close();
 
     initGlobals();
-
     Position position = parse_fen(fen);
 
     MoveList moves;
@@ -55,6 +54,30 @@ int main(int argc, char **argv) {
               << squareStringify(moveGetTo(bestMove.first)) << std::endl
               << "Eval" << std::to_string(bestMove.second) << std::endl;
     ;
+    while (true) {
+        std::string input;
+        std::cout << "s - search, m - make a move" << std::endl;
+        std::cin >> input;
+        if (input == "s") {
+            int innerDepth;
+            std::string bufDepth;
+            std::cout << "depth" << std::endl;
+            std::cin >> bufDepth;
+            innerDepth = std::atoi(bufDepth.c_str());
+            SearchInfo bestMove = search(&position, innerDepth);
+            std::cout << "BestMove"
+                      << squareStringify(moveGetFrom(bestMove.first))
+                      << squareStringify(moveGetTo(bestMove.first)) << std::endl
+                      << "Eval" << std::to_string(bestMove.second) << std::endl;
+        } else if (input == "m") {
+            std::string buf;
+            std::cin >> buf;
+        } else if (input == "q") {
+            exit(0);
+        } else {
+            exit(1);
+        }
+    }
     // printRays(Square::SQUARE_F2);
     return 0;
 }
