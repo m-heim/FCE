@@ -219,6 +219,8 @@ void fce_error(std::string message, int exit_code);
 
 std::string squareStringify(SquareIndex index);
 
+SquareIndex getSquareFromString(std::string square);
+
 char piece_to_char(Piece piece);
 
 void printSquare(SquareIndex index);
