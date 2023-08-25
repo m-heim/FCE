@@ -1,12 +1,12 @@
 #include "fen.hpp"
 #include "core.hpp"
 #include "position.hpp"
-#include <string.h>
+#include <cstring>
 
-Position parse_fen(std::string fen) {
+Position parse_fen(const std::string &fen) {
 
     int start = 0;
-    int next = fen.find(' ', start);
+    size_t next = fen.find(' ', start);
     std::string board = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find(' ', start);
