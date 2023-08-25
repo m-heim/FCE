@@ -35,17 +35,17 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
     // the map that will contain the attacks after hashing the bitboard
     std::array<Bitboard, NUM_POS_OCCUPANCIES> attackMap{};
     for (uint64_t attempt = 0; attempt < ATTEMPTS_FIND_MAGIC; attempt++) {
-        hashtop = 0;
-        memset(&attackMap, '\0', sizeof(attackMap));
-        bool success = true;
-        Bitboard magic = randomBitboard();
+        Bitboard magic = randomBitboard() & randomBitboard();
         if (bitboardGetHW((mask * magic) & rank8) < MIN_BITS_MAGIC) {
             continue;
         }
+        hashtop = 0;
+        memset(&attackMap, '\0', sizeof(attackMap));
+        bool success = true;
         // go through all possible occupancies
         for (int i = 0; (i < numOccupancies) && success; i++) {
             Bitboard hash =
-                (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift);
+                (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift + 1);
             hashtop = std::max(hash, hashtop);
             // if no
             if (attackMap[hash] == 0) {

@@ -15,6 +15,32 @@ typedef std::uint8_t SquareIndex;
 typedef std::uint16_t Move;
 typedef std::pair<Move, Evaluation> SearchInfo;
 
+enum File : uint8_t {
+    FILE_A = 0,
+    FILE_B = 1,
+    FILE_C = 2,
+    FILE_D = 3,
+    FILE_E = 4,
+    FILE_F = 5,
+    FILE_G = 6,
+    FILE_H = 7,
+    FILE_TOP = FILE_H,
+    FILE_COUNT = 8
+};
+
+enum Rank : uint8_t {
+    RANK_1 = 0,
+    RANK_2 = 1,
+    RANK_3 = 2,
+    RANK_4 = 3,
+    RANK_5 = 4,
+    RANK_6 = 5,
+    RANK_7 = 6,
+    RANK_8 = 7,
+    RANK_TOP = RANK_8,
+    RANK_COUNT = 8,
+};
+
 enum EvaluationLiterals : Evaluation {
     NEG_INF = -100000000000,
     INVALID_MOVE = NEG_INF + 1,
@@ -215,7 +241,7 @@ inline MoveFlags moveGetFlags(Move m) {
 }
 
 // non performance relevant functions
-void fce_error(std::string message, int exit_code);
+void fce_error(const std::string &message, int exit_code);
 
 std::string squareStringify(SquareIndex index);
 

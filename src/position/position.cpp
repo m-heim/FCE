@@ -130,7 +130,6 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     Move bestMove = no_move;
     MoveList moves;
     Evaluation max = EvaluationLiterals::NEG_INF;
-    Move move = no_move;
     position.generateMoves(moves);
     // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
@@ -147,7 +146,7 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     return bestMove;
 }
 
-std::array<std::uint64_t, 40> positionsEvaluated;
+std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft) {
     // alpha is the best score we can achieve. -> neg inf at start, if we find a
@@ -236,15 +235,15 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << std::to_string(moves.count) << std::endl;
     Evaluation best = EvaluationLiterals::NEG_INF;
     Move bestMove = no_move;
-    for (uint8_t i = 0; i < moves.count; i++) {
+    for (uint8_t index = 0; index < moves.count; index++) {
         Position p = *position;
-        Move m = moves.get(i);
-        p.makeMove(m);
+        Move move = moves.get(index);
+        p.makeMove(move);
         Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF,
                                         EvaluationLiterals::POS_INF, depth);
         if (current > best) {
             best = current;
-            bestMove = m;
+            bestMove = move;
         }
     }
     uint64_t positions = 0;

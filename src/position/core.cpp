@@ -57,24 +57,24 @@ SquareInfo charToSquareInfo(char piece) {
     return info;
 }
 
-void fce_error(std::string message, int exit_code) {
+void fce_error(const std::string &message, int exit_code) {
     std::cerr << message << std::endl;
     std::exit(exit_code);
 }
 
 std::string squareStringify(SquareIndex index) {
-    std::string ret = "";
-    uint8_t col = index % 8;
-    uint8_t row = index / 8;
-    ret.push_back((col + 'a'));
-    ret.push_back((row + '1'));
+    std::string ret;
+    int col = index % File::FILE_COUNT;
+    int row = index / Rank::RANK_COUNT;
+    ret.push_back((char)(col + 'a'));
+    ret.push_back((char)(row + '1'));
     return ret;
 }
 
 SquareIndex getSquareFromString(std::string square) {
     uint8_t col = square.at(0) - 'a';
     uint8_t row = square.at(1) - '1';
-    return row * 8 + col;
+    return row * Square::SQUARE_A2 + col;
 }
 
 void printSquare(SquareIndex index) {
@@ -88,11 +88,11 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
 
 void printBitboard(Bitboard board) {
     std::cout << "  A B C D E F G H" << std::endl;
-    for (int8_t row = 7; row >= 0; row--) {
+    for (int8_t row = Rank::RANK_TOP; row >= 0; row--) {
         std::cout << (char)('1' + row);
-        for (int8_t col = 0; col <= 7; col++) {
+        for (int8_t col = 0; col <= File::FILE_TOP; col++) {
             std::cout << " ";
-            uint8_t index = row * 8 + col;
+            SquareIndex index = row * Square::SQUARE_A2 + col;
             std::cout << (board >> index) % 2;
         }
         std::cout << "\n";
