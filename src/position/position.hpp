@@ -136,15 +136,18 @@ inline void Position::generatePieceMoves(MoveList &moves) {
 
 inline void Position::generatePawnMoves(MoveList &moves) {
     Bitboard pawns = bitboards[to_move][Piece::PAWN];
-    Bitboard pawns_not_on_7;
+    Bitboard pawns_not_promoting;
+    Bitboard doublePushRank;
     if (to_move == Color::WHITE) {
-        pawns_not_on_7 = pawns & notRank7;
+        pawns_not_promoting = pawns & notRank7;
+        doublePushRank = rank4;
     } else {
-        pawns_not_on_7 = pawns & notRank2;
+        pawns_not_promoting = pawns & notRank2;
+        doublePushRank = rank5;
     }
     Color opponent = (to_move == Color::BLACK) ? Color::WHITE : Color::BLACK;
-    while (pawns_not_on_7) {
-        SquareIndex from = get_ls1b_index(pawns_not_on_7);
+    while (pawns_not_promoting) {
+        SquareIndex from = get_ls1b_index(pawns_not_promoting);
         Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
         Bitboard empty = ~(occupation[opponent] | occupation[to_move]);
@@ -152,14 +155,14 @@ inline void Position::generatePawnMoves(MoveList &moves) {
         while (pushes) {
             SquareIndex to = get_ls1b_index(pushes);
             Bitboard doublePush = pawnPushes[to_move][to];
-            if (doublePush & empty & rank4) {
+            if (doublePush & empty & doublePushRank) {
                 moves.push_back(serialize_move(from, get_ls1b_index(doublePush),
                                                MoveFlags::QUIET));
             }
             moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
             pushes &= unmaskedSquare[to];
         }
-        pawns_not_on_7 &= unmaskedSquare[from];
+        pawns_not_promoting &= unmaskedSquare[from];
     }
 }
 
