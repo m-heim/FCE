@@ -69,10 +69,11 @@ void initPrimitives() {
     }
 }
 
-std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
-std::array<Magic, Square::SQUARE_COUNT> rookMagics;
-std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
-std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
+std::array<Bitboard, MAGICS_ARRAY_SIZE>
+    magics; // continuous array holding arrays of hashs -> attacks
+std::array<Magic, Square::SQUARE_COUNT> rookMagics;   // access type for magics
+std::array<Magic, Square::SQUARE_COUNT> bishopMagics; // access type for magics
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks; // precom
 std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
@@ -114,14 +115,14 @@ void initMagics() {
 Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     Magic result{};
     Bitboard mask = bishop ? getBishopMask(index) : getRookMask(index);
-    uint8_t shift = bitboardGetHW(mask);
+    uint8_t shift = bitboardGetHW(mask); // hw of mask
     uint8_t totalShift = Square::SQUARE_COUNT - shift;
     Bitboard magicNumber =
         bishop ? bishopMagicNumbers[index] : rookMagicNumbers[index];
-    Bitboard *start = &magics[*magicIndex];
+    Bitboard *startOfBlock = &magics[*magicIndex];
     result.mask = mask;
     result.magic = magicNumber;
-    result.attacks = start;
+    result.attacks = startOfBlock;
     result.shift = totalShift;
     std::array<Bitboard, BITBOARD_SUBSETS_N> occupancies =
         getBitboardSubsets(mask);
@@ -131,15 +132,12 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     for (int i = 0; i < combinations; i++) {
         attacks[i] = bishop ? getBishopAttacks(index, occupancies[i])
                             : getRookAttacks(index, occupancies[i]);
-        // printBitboard(getBishopAttacks(index, occupancies[i]));
-        // printBitboard(occupancies[i]);
     }
     for (int index = 0; index < combinations; index++) {
         Bitboard hash = result.getMagicIndex(occupancies[index]);
-        start[hash] = attacks.at(index);
+        startOfBlock[hash] = attacks.at(index);
     }
     *magicIndex += combinations;
-    // std::cout << std::to_string(*magicIndex) << std::endl;
     return result;
 }
 
@@ -177,6 +175,12 @@ void initRayAttacks() {
 void printRays(SquareIndex index) {
     for (uint8_t d = 0; d < RayDirection::RAY_COUNT; d++) {
         printBitboard(rays[d][index]);
+    }
+}
+
+void printKnightAttacks() {
+    for (auto attack : knightAttacks) {
+        printBitboard(attack);
     }
 }
 
