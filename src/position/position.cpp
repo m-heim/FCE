@@ -82,6 +82,12 @@ inline Evaluation Position::evaluateMaterial() {
                                1)) *
                     50;
             }
+            eval +=
+                bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & center) *
+                50;
+            eval -=
+                bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & center) *
+                50;
         }
         if (piece == Piece::BISHOP) {
             Evaluation whiteAdditionalBishops = std::max<int>(
@@ -149,26 +155,24 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
     // for a better move beta is the best score the opponent can achieve -> pos
     // inf at start, if the position is better for us than what the opponent can
     // achieve somewhere else stop searching and return opponents beta
-    positionsEvaluated.at(depthleft) += 1;
+    positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
     }
     MoveList moves;
     position->generateMoves(moves);
     Evaluation score = 0;
-    bool gotChecked = false;
     uint8_t legalMoves = 0;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position positionWithMyMove = *position;
-        // if the Move made by us leads to the capture of the king
+        // one of our moves is able to capture the king
         if (!positionWithMyMove.makeMove(moves.get(i))) {
             // notify the callee
             return EvaluationLiterals::INVALID_MOVE;
         }
         score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
-        // we are in check,
         if (score == -EvaluationLiterals::INVALID_MOVE) {
-            gotChecked = true;
+            // if we are here, we are in check!
             continue;
         }
         // increment legal move counter
@@ -180,7 +184,6 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
             return beta; //  fail hard beta-cutoff
         }
         // if the move found is better than the best score we can achieve update
-        // it alpha
         if (score > alpha) {
             // std::cout << p.stringify_board() << std::endl;
             alpha = score; // alpha acts like max in MiniMax
@@ -188,17 +191,18 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
     }
     // no legal moves found, return checkmate
     if (legalMoves == 0) {
-        return EvaluationLiterals::NEG_INF;
+        return EvaluationLiterals::NEG_INF - 1;
     }
     return alpha;
 }
 
 Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta,
                    uint8_t depth) {
-    if (depth == 0) {
-        return alpha;
-    }
+    positionsEvaluated.at(depth) += 1;
     Evaluation eval = position->evaluate();
+    if (depth == 0) {
+        return eval;
+    }
     if (eval >= beta) {
         return beta;
     }
