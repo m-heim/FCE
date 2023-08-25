@@ -71,6 +71,12 @@ std::string squareStringify(SquareIndex index) {
     return ret;
 }
 
+SquareIndex getSquareFromString(std::string square) {
+    uint8_t col = square.at(0) - 'a';
+    uint8_t row = square.at(1) - '1';
+    return row * 8 + col;
+}
+
 void printSquare(SquareIndex index) {
     std::cout << squareStringify(index) << std::endl;
 }
