@@ -78,11 +78,14 @@ std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 
+// PRIMITIVES
 std::array<Bitboard, Square::SQUARE_COUNT> bishopMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> rookMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> queenMasks;
 std::array<Bitboard, Square::SQUARE_COUNT> maskedSquare;
 std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
+std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
+std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 
 void initMagics() {
     uint64_t slidingIndex = 0;
@@ -140,8 +143,6 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     return result;
 }
 
-std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
-std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT>
     rays;
 
@@ -214,7 +215,7 @@ Bitboard getBishopAttacks(SquareIndex index, Bitboard occupancy) {
 }
 
 void initGlobals() {
-    initMasks();
+    initPrimitives();
     initRayAttacks();
     initMagics();
 }

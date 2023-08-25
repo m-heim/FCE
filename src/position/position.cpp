@@ -3,8 +3,8 @@
 #include "core.hpp"
 #include "magic.hpp"
 #include <chrono>
+#include <cstring>
 #include <iostream>
-#include <string.h>
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal,
                          Piece pieceVal) {
@@ -104,10 +104,10 @@ Evaluation negaMax(Position position, uint16_t depth) {
     position.generateMoves(moves);
     // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
-        Position p = position;
-        p.makeMove(moves.get(i));
+        Position newPos = position;
+        newPos.makeMove(moves.get(i));
         // std::cout << p.stringify_board() << std::endl;
-        Evaluation current = -negaMax(p, depth - 1);
+        Evaluation current = -negaMax(newPos, depth - 1);
         // std::cout << current << std::endl;
         if (current > max) {
             // std::cout << "BETTER MOVE" << std::endl;
@@ -124,17 +124,18 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     Move bestMove = no_move;
     MoveList moves;
     Evaluation max = EvaluationLiterals::NEG_INF;
-    Move m = no_move;
+    Move move = no_move;
     position.generateMoves(moves);
     // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
-        Position p = position;
-        m = p.makeMove(moves.get(i));
-        Evaluation current = -negaMax(p, depth - 1);
+        Position newPos = position;
+        Move move = moves.get(i);
+        newPos.makeMove(move);
+        Evaluation current = -negaMax(newPos, depth - 1);
         std::cout << current << std::endl;
         if (current > max) {
             max = current;
-            bestMove = m;
+            bestMove = move;
         }
     }
     return bestMove;
@@ -150,7 +151,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
     // achieve somewhere else stop searching and return opponents beta
     positionsEvaluated.at(depthleft) += 1;
     if (depthleft == 0) {
-        return position->evaluate();
+        return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
     }
     MoveList moves;
     position->generateMoves(moves);
@@ -173,12 +174,13 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
         // increment legal move counter
         legalMoves++;
         // std::cout << p.stringify_board() << std::endl;
-        // opponent has a better move in the search tree already so
+        // opponent has a better move in the search tree already so return their
+        // limit as ours
         if (score >= beta) {
             return beta; //  fail hard beta-cutoff
         }
         // if the move found is better than the best score we can achieve update
-        // alpha
+        // it alpha
         if (score > alpha) {
             // std::cout << p.stringify_board() << std::endl;
             alpha = score; // alpha acts like max in MiniMax
@@ -187,6 +189,38 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
     // no legal moves found, return checkmate
     if (legalMoves == 0) {
         return EvaluationLiterals::NEG_INF;
+    }
+    return alpha;
+}
+
+Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta,
+                   uint8_t depth) {
+    if (depth == 0) {
+        return alpha;
+    }
+    Evaluation eval = position->evaluate();
+    if (eval >= beta) {
+        return beta;
+    }
+    if (alpha < eval) {
+        alpha = eval;
+    }
+    MoveList moves{};
+    Evaluation score = EvaluationLiterals::EVEN;
+    position->generateMoves(moves);
+    for (uint8_t index = 0; index < moves.count; index++) {
+        Move move = moves.get(index);
+        if (moveGetFlags(move) == MoveFlags::CAPTURE) {
+            Position capturePos = *position;
+            capturePos.makeMove(move);
+            score = -quiesce(&capturePos, -beta, -alpha, depth - 1);
+            if (score >= beta) {
+                return beta;
+            }
+            if (score > alpha) {
+                alpha = score;
+            }
+        }
     }
     return alpha;
 }

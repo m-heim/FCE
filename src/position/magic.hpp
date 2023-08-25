@@ -44,7 +44,7 @@ extern std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
 
 void initGlobals();
 
-void initMasks();
+void initPrimitives();
 void initMagics();
 void initRayAttacks();
 

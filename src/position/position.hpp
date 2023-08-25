@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#define QUIESCE_DEPTH_N 6
 class Position {
   public:
     // BOARD REPRESENTATIONS
@@ -42,6 +43,8 @@ Move negaMaxRoot(Position position, uint16_t depth);
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
                      uint16_t depthleft);
 SearchInfo search(Position *position, uint16_t depth);
+Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta,
+                   uint8_t depth);
 
 inline Evaluation Position::evaluatePosition(void) {
     Evaluation eval = 0;

@@ -43,8 +43,10 @@ Position parse_fen(std::string fen) {
     }
     if (side == "w") {
         position.to_move = Color::WHITE;
+        position.opponent = Color::BLACK;
     } else if (side == "b") {
         position.to_move = Color::BLACK;
+        position.opponent = Color::WHITE;
     } else {
         fce_error("Couldn\'t parse side to move in fen", 1);
     }
