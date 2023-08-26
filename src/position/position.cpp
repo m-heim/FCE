@@ -6,8 +6,7 @@
 #include <cstring>
 #include <iostream>
 
-void Position::setSquare(SquareIndex squareVal, Color colorVal,
-                         Piece pieceVal) {
+void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) {
     Piece piece = board[squareVal].piece;
     Color color = board[squareVal].color;
     board[squareVal].color = colorVal;
@@ -21,8 +20,7 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal,
 }
 
 Position::Position() {
-    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
-         square++) {
+    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         board[square].color = Color::NO_COLOR;
         board[square].piece = Piece::NO_PIECE;
     }
@@ -35,11 +33,11 @@ Position::Position() {
 std::string Position::stringify_board() {
     std::string ret;
     ret.append("  A B C D E F G H\n");
-    for (int8_t row = 7; row >= 0; row--) {
+    for (int8_t row = Rank::RANK_TOP; row >= Rank::RANK_1; row--) {
         ret.push_back((char)('1' + row));
-        for (int8_t col = 0; col <= 7; col++) {
+        for (int8_t col = File::FILE_A; col <= File::FILE_TOP; col++) {
             ret.push_back(' ');
-            SquareIndex square = row * 8 + col;
+            SquareIndex square = row * Square::SQUARE_A2 + col;
             char piece = piece_to_char(board[square].piece);
             if (board[square].color == Color::WHITE && piece != ' ') {
                 piece += 'A' - 'a';
@@ -49,6 +47,10 @@ std::string Position::stringify_board() {
         ret.push_back('\n');
     }
     return ret;
+}
+
+void Position::print_board() {
+    std::cout << stringify_board() << std::endl;
 }
 
 inline Evaluation Position::evaluate() {
@@ -69,31 +71,21 @@ inline Evaluation Position::evaluateMaterial() {
             // doubled pawns
             for (uint8_t col = 0; col < Square::SQUARE_A2; col++) {
                 Bitboard file = fileAttacks[col];
-                eval -=
-                    (std::max<int>(
-                        0, bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] &
-                                         file) -
-                               1)) *
-                    50;
-                eval +=
-                    (std::max<int>(
-                        0, bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] &
-                                         file) -
-                               1)) *
-                    50;
+                eval -= (std::max<int>(
+                            0, bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & file) - 1)) *
+                        50;
+                eval += (std::max<int>(
+                            0, bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & file) - 1)) *
+                        50;
             }
-            eval +=
-                bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & center) *
-                50;
-            eval -=
-                bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & center) *
-                50;
+            eval += bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & center) * 50;
+            eval -= bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & center) * 50;
         }
         if (piece == Piece::BISHOP) {
-            Evaluation whiteAdditionalBishops = std::max<int>(
-                0, bitboardGetHW(bitboards[Color::WHITE][Piece::BISHOP]) - 1);
-            Evaluation blackAdditionalBishops = std::max<int>(
-                0, bitboardGetHW(bitboards[Color::BLACK][Piece::BISHOP]) - 1);
+            Evaluation whiteAdditionalBishops =
+                std::max<int>(0, bitboardGetHW(bitboards[Color::WHITE][Piece::BISHOP]) - 1);
+            Evaluation blackAdditionalBishops =
+                std::max<int>(0, bitboardGetHW(bitboards[Color::BLACK][Piece::BISHOP]) - 1);
             eval += whiteAdditionalBishops * 200;
             eval -= blackAdditionalBishops * 200;
         }
@@ -147,17 +139,15 @@ Move negaMaxRoot(Position position, uint16_t depth) {
 }
 
 std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated;
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
-                     uint16_t depthleft) {
-    // alpha is the best score we can achieve. -> neg inf at start, if we find a
-    // better position we update alpha to this new position and keep searching
-    // for a better move beta is the best score the opponent can achieve -> pos
-    // inf at start, if the position is better for us than what the opponent can
-    // achieve somewhere else stop searching and return opponents beta
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft) {
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
     }
+    // if (position->inCheck()) {
+    // std::cout << "IN CHECK, USING SPECIAL GENERATOR";
+    // position->print_board();
+    //}
     MoveList moves;
     position->generateMoves(moves);
     Evaluation score = 0;
@@ -174,9 +164,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
             // if we are here, we are in check!
             continue;
         }
-        // increment legal move counter
         legalMoves++;
-        // std::cout << p.stringify_board() << std::endl;
         // opponent has a better move in the search tree already so return their
         // limit as ours
         if (score >= beta) {
@@ -184,19 +172,16 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta,
         }
         // if the move found is better than the best score we can achieve update
         if (score > alpha) {
-            // std::cout << p.stringify_board() << std::endl;
             alpha = score; // alpha acts like max in MiniMax
         }
     }
-    // no legal moves found, return checkmate
     if (legalMoves == 0) {
-        return EvaluationLiterals::NEG_INF - 1;
+        return EvaluationLiterals::MATE; // checkmate
     }
     return alpha;
 }
 
-Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta,
-                   uint8_t depth) {
+Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_t depth) {
     positionsEvaluated.at(depth) += 1;
     Evaluation eval = position->evaluate();
     if (depth == 0) {
@@ -239,8 +224,12 @@ SearchInfo search(Position *position, uint16_t depth) {
         Position p = *position;
         Move move = moves.get(index);
         p.makeMove(move);
-        Evaluation current = -alphaBeta(&p, EvaluationLiterals::NEG_INF,
-                                        EvaluationLiterals::POS_INF, depth);
+        Evaluation current =
+            -alphaBeta(&p, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
+        if (current == -EvaluationLiterals::INVALID_MOVE) {
+            // if we are here, we are in check!
+            continue;
+        }
         if (current > best) {
             best = current;
             bestMove = move;
@@ -249,8 +238,8 @@ SearchInfo search(Position *position, uint16_t depth) {
     uint64_t positions = 0;
     for (int i = 0; i < 40; i++) {
         positions += positionsEvaluated[i];
-        std::cout << "Depth" << std::to_string(i) << " "
-                  << std::to_string(positionsEvaluated[i]) << std::endl;
+        std::cout << "Depth" << std::to_string(i) << " " << std::to_string(positionsEvaluated[i])
+                  << std::endl;
     }
     double rate = (double)positions /
                   std::chrono::duration_cast<std::chrono::nanoseconds>(
