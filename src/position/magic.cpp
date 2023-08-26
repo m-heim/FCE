@@ -7,29 +7,23 @@ Bitboard getKnightAttacks(Bitboard board) {
     // Generate all possible knight moves from knights
     return ((board << Direction::NNE | board >> -Direction::SSE) & notFileA) |
            ((board << Direction::NNW | board >> -Direction::SSW) & notFileH) |
-           ((board << Direction::WWN | board >> -Direction::WWS) & notFileH &
-            notFileG) |
-           ((board << Direction::EEN | board >> -Direction::EES) & notFileA &
-            notFileB);
+           ((board << Direction::WWN | board >> -Direction::WWS) & notFileH & notFileG) |
+           ((board << Direction::EEN | board >> -Direction::EES) & notFileA & notFileB);
 }
 
 Bitboard getKingAttacks(Bitboard board) {
-    Bitboard cols =
-        (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
-    return ((cols >> -Direction::WEST) & notFileH) |
-           ((cols << Direction::EAST) & notFileA) | cols;
+    Bitboard cols = (board << Direction::NORTH) | (board >> Direction::NORTH) | board;
+    return ((cols >> -Direction::WEST) & notFileH) | ((cols << Direction::EAST) & notFileA) | cols;
 }
 
 Bitboard getDiagonalMask(SquareIndex index) {
-    int8_t toShift =
-        ((index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
+    int8_t toShift = ((index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
     return toShift >= 0 ? diagonal >> toShift : diagonal << -toShift;
 }
 
 Bitboard getDiagonal2Mask(SquareIndex index) {
     int8_t toShift =
-        (Square::SQUARE_H1 - (index & Square::SQUARE_H1) - (index >> 3)) *
-        Square::SQUARE_A2;
+        (Square::SQUARE_H1 - (index & Square::SQUARE_H1) - (index >> 3)) * Square::SQUARE_A2;
     return toShift >= 0 ? diagonal2 >> toShift : diagonal2 << -toShift;
 }
 
@@ -71,8 +65,8 @@ void initPrimitives() {
 
 std::array<Bitboard, MAGICS_ARRAY_SIZE>
     magics; // continuous array holding arrays of hashs -> attacks
-std::array<Magic, Square::SQUARE_COUNT> rookMagics;   // access type for magics
-std::array<Magic, Square::SQUARE_COUNT> bishopMagics; // access type for magics
+std::array<Magic, Square::SQUARE_COUNT> rookMagics;                    // access type for magics
+std::array<Magic, Square::SQUARE_COUNT> bishopMagics;                  // access type for magics
 std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks; // precom
 std::array<Bitboard, Square::SQUARE_COUNT> knightAttacks;
 std::array<Bitboard, Square::SQUARE_COUNT> kingAttacks;
@@ -90,15 +84,12 @@ std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 
 void initMagics() {
     uint64_t slidingIndex = 0;
-    for (SquareIndex index = Square::SQUARE_A1; index <= Square::SQUARE_H8;
-         index++) {
+    for (SquareIndex index = Square::SQUARE_A1; index <= Square::SQUARE_H8; index++) {
         Bitboard board = bitboardSetSquare(index);
-        Bitboard attacks_white =
-            ((board & notFileA) << Direction::NORTH_WEST |
-             ((board & notFileH) << Direction::NORTH_EAST));
-        Bitboard attacks_black =
-            ((board & notFileH) >> Direction::NORTH_WEST |
-             ((board & notFileA) >> Direction::NORTH_EAST));
+        Bitboard attacks_white = ((board & notFileA) << Direction::NORTH_WEST |
+                                  ((board & notFileH) << Direction::NORTH_EAST));
+        Bitboard attacks_black = ((board & notFileH) >> Direction::NORTH_WEST |
+                                  ((board & notFileA) >> Direction::NORTH_EAST));
         pawnAttacks[Color::WHITE][index] = attacks_white;
         pawnAttacks[Color::BLACK][index] = attacks_black;
         pawnPushes[Color::WHITE][index] = board << Direction::NORTH;
@@ -117,15 +108,13 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     Bitboard mask = bishop ? getBishopMask(index) : getRookMask(index);
     uint8_t shift = bitboardGetHW(mask); // hw of mask
     uint8_t totalShift = Square::SQUARE_COUNT - shift;
-    Bitboard magicNumber =
-        bishop ? bishopMagicNumbers[index] : rookMagicNumbers[index];
+    Bitboard magicNumber = bishop ? bishopMagicNumbers[index] : rookMagicNumbers[index];
     Bitboard *startOfBlock = &magics[*magicIndex];
     result.mask = mask;
     result.magic = magicNumber;
     result.attacks = startOfBlock;
     result.shift = totalShift;
-    std::array<Bitboard, BITBOARD_SUBSETS_N> occupancies =
-        getBitboardSubsets(mask);
+    std::array<Bitboard, BITBOARD_SUBSETS_N> occupancies = getBitboardSubsets(mask);
     std::array<Bitboard, BITBOARD_SUBSETS_N> attacks{};
     uint16_t combinations = (1 << shift);
     // calculate all the attacks for the occupancies
@@ -141,12 +130,10 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     return result;
 }
 
-std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT>
-    rays;
+std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
 
 void initRayAttacks() {
-    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
-         square++) {
+    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         Bitboard origin = bitboardSetSquare(square);
         Bitboard fileMask = fileAttacks[square];
         Bitboard rankMask = rankAttacks[square];
@@ -184,23 +171,20 @@ void printKnightAttacks() {
     }
 }
 
-Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
-                       SquareIndex square) {
+Bitboard getRayAttacks(Bitboard occupied, RayDirection direction, SquareIndex square) {
     // get all possible attacks
     // TODO does this go onto the target square?
     Bitboard attacks = rays[direction][square];
     Bitboard blocker = attacks & occupied;
-    square = direction >= RayDirection::POSITIVE
-                 ? get_ls1b_index(blocker | (fileH & rank8))
-                 : get_ms1b_index(blocker | (fileA & rank1));
+    square = direction >= RayDirection::POSITIVE ? get_ls1b_index(blocker | (fileH & rank8))
+                                                 : get_ms1b_index(blocker | (fileA & rank1));
     return attacks ^ rays[direction][square];
 }
 
 Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
     Bitboard result = 0ULL;
-    std::array<RayDirection, 4> rookDirections = {
-        RayDirection::SOUTH_RAY, RayDirection::EAST_RAY,
-        RayDirection::NORTH_RAY, RayDirection::WEST_RAY};
+    std::array<RayDirection, 4> rookDirections = {RayDirection::SOUTH_RAY, RayDirection::EAST_RAY,
+                                                  RayDirection::NORTH_RAY, RayDirection::WEST_RAY};
     for (RayDirection direction : rookDirections) {
         result |= getRayAttacks(occupancy, direction, index);
     }
@@ -210,8 +194,8 @@ Bitboard getRookAttacks(SquareIndex index, Bitboard occupancy) {
 Bitboard getBishopAttacks(SquareIndex index, Bitboard occupancy) {
     Bitboard result = 0ULL;
     std::array<RayDirection, 4> rookDirections = {
-        RayDirection::SOUTH_EAST_RAY, RayDirection::NORTH_EAST_RAY,
-        RayDirection::NORTH_WEST_RAY, RayDirection::SOUTH_WEST_RAY};
+        RayDirection::SOUTH_EAST_RAY, RayDirection::NORTH_EAST_RAY, RayDirection::NORTH_WEST_RAY,
+        RayDirection::SOUTH_WEST_RAY};
     for (RayDirection direction : rookDirections) {
         result |= getRayAttacks(occupancy, direction, index);
     }

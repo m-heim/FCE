@@ -25,9 +25,7 @@ class Magic {
 extern std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
 extern std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 extern std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>,
-                  RayDirection::RAY_COUNT>
-    rays;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
 extern std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnAttacks;
@@ -37,10 +35,10 @@ extern std::array<Bitboard, Square::SQUARE_COUNT> bishopMasks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> rookMasks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> queenMasks;
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnPushes;
-extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2>
-    pawnDoublePushes;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, 2> pawnDoublePushes;
 extern std::array<Bitboard, Square::SQUARE_COUNT> maskedSquare;
 extern std::array<Bitboard, Square::SQUARE_COUNT> unmaskedSquare;
+extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, Square::SQUARE_COUNT> inBetween;
 
 void initGlobals();
 
@@ -50,8 +48,7 @@ void initRayAttacks();
 
 Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex);
 
-Bitboard getRayAttacks(Bitboard occupied, RayDirection direction,
-                       SquareIndex square);
+Bitboard getRayAttacks(Bitboard occupied, RayDirection direction, SquareIndex square);
 
 // Line attacks
 Bitboard getDiagonalMask(SquareIndex index);
