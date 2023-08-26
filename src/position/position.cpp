@@ -140,10 +140,15 @@ Move negaMaxRoot(Position position, uint16_t depth) {
 
 std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated;
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft) {
+    // This search is based on the fact that if we can choose between multiple moves and one of
+    // those moves yields in a better position than what our opponent can achieve we can ignore this
+    // whole subtree
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
     }
+    std::cout << std::to_string(alpha) << " " << std::to_string(beta) << std::endl;
+    position->print_board();
     // if (position->inCheck()) {
     // std::cout << "IN CHECK, USING SPECIAL GENERATOR";
     // position->print_board();
@@ -154,16 +159,12 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     uint8_t legalMoves = 0;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position positionWithMyMove = *position;
-        // one of our moves is able to capture the king
-        if (!positionWithMyMove.makeMove(moves.get(i))) {
-            // notify the callee
-            return EvaluationLiterals::INVALID_MOVE;
-        }
-        score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
-        if (score == -EvaluationLiterals::INVALID_MOVE) {
-            // if we are here, we are in check!
+        positionWithMyMove.makeMove(moves.get(i));
+        if (positionWithMyMove.inCheck(positionWithMyMove.opponent)) {
+            // we left ourselves in check
             continue;
         }
+        score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
         legalMoves++;
         // opponent has a better move in the search tree already so return their
         // limit as ours
@@ -172,7 +173,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         }
         // if the move found is better than the best score we can achieve update
         if (score > alpha) {
-            alpha = score; // alpha acts like max in MiniMax
+            alpha = score;
         }
     }
     if (legalMoves == 0) {
@@ -196,12 +197,17 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
     MoveList moves{};
     Evaluation score = EvaluationLiterals::EVEN;
     position->generateMoves(moves);
+    uint8_t legalMoves = 0;
     for (uint8_t index = 0; index < moves.count; index++) {
         Move move = moves.get(index);
         if (moveGetFlags(move) == MoveFlags::CAPTURE) {
             Position capturePos = *position;
             capturePos.makeMove(move);
+            if (capturePos.inCheck(capturePos.opponent)) {
+                continue;
+            }
             score = -quiesce(&capturePos, -beta, -alpha, depth - 1);
+            legalMoves++;
             if (score >= beta) {
                 return beta;
             }
@@ -209,6 +215,9 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
                 alpha = score;
             }
         }
+    }
+    if (legalMoves == 0) {
+        return EvaluationLiterals::MATE;
     }
     return alpha;
 }

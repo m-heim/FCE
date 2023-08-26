@@ -36,7 +36,7 @@ class Position {
     void generatePieceMoves(MoveList &moves);
     void generateMoves(MoveList &moves);
     bool makeMove(Position &position, Move m);
-    bool inCheck();
+    bool inCheck(Color side);
 };
 
 Evaluation negaMax(Position position, uint16_t depth);
@@ -166,16 +166,17 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     }
 }
 
-inline bool Position::inCheck() {
-    SquareIndex square = get_ls1b_index(bitboards[to_move][Piece::KING]);
+inline bool Position::inCheck(Color side) {
+    Color opponentSide = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;
+    SquareIndex square = get_ls1b_index(bitboards[side][Piece::KING]);
     Bitboard oursAndTheirs = occupation[Color::WHITE] | occupation[Color::BLACK];
-    auto opponentPieces = bitboards[opponent];
+    auto opponentPieces = bitboards[opponentSide];
     Bitboard knight = knightAttacks[square] & opponentPieces[Piece::KNIGHT];
     Bitboard rook = rookMagics.at(square).getAttack(getRookMask(square) & oursAndTheirs) &
                     (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::ROOK]);
     Bitboard bishop = bishopMagics.at(square).getAttack(getBishopMask(square) & oursAndTheirs) &
                       (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::BISHOP]);
-    Bitboard pawn = pawnAttacks[to_move][square] & opponentPieces[Piece::PAWN];
+    Bitboard pawn = pawnAttacks[side][square] & opponentPieces[Piece::PAWN];
     return knight | rook | bishop | pawn;
 }
 
