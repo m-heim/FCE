@@ -51,6 +51,7 @@ enum EvaluationLiterals : Evaluation {
     QUEEN_VAL = 900,
     KING_VAL = 2000000,
     POS_INF = 100000000000,
+    MATE = NEG_INF + 1000,
     EVEN = 0
 };
 
@@ -197,9 +198,8 @@ enum Square : SquareIndex {
 // bitboard manipulation
 
 constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
-    EvaluationLiterals::PAWN_VAL,   EvaluationLiterals::KNIGHT_VAL,
-    EvaluationLiterals::BISHOP_VAL, EvaluationLiterals::ROOK_VAL,
-    EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
+    EvaluationLiterals::PAWN_VAL, EvaluationLiterals::KNIGHT_VAL, EvaluationLiterals::BISHOP_VAL,
+    EvaluationLiterals::ROOK_VAL, EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
 
 inline Bitboard bitboardSetSquare(SquareIndex index) {
     return 1ULL << index;
@@ -262,8 +262,7 @@ class MoveList {
         moves[count] = move;
         count++;
     }
-    inline void addMoves(const SquareIndex &from, Bitboard &board,
-                         MoveFlags flags) {
+    inline void addMoves(const SquareIndex &from, Bitboard &board, MoveFlags flags) {
         while (board) {
             SquareIndex to = get_ls1b_index(board);
             push_back(serialize_move(from, to, flags));
