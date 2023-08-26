@@ -23,8 +23,7 @@ int main(int argc, char **argv) {
             std::cout << "fce -f [file] -d [depth]" << std::endl;
             break;
         default:
-            std::cerr << "Please provide an argument -h for more info"
-                      << std::endl;
+            std::cerr << "Please provide an argument -h for more info" << std::endl;
             exit(2);
         }
     }
@@ -49,15 +48,17 @@ int main(int argc, char **argv) {
 
     std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-    SearchInfo bestMove = search(&position, depth);
-    std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
-              << squareStringify(moveGetTo(bestMove.first)) << std::endl
-              << "Eval" << std::to_string(bestMove.second) << std::endl;
+    // SearchInfo bestMove = search(&position, depth);
+    // std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
+    //<< squareStringify(moveGetTo(bestMove.first)) << std::endl
+    //<< "Eval" << std::to_string(bestMove.second) << std::endl;
+    Evaluation eval =
+        alphaBeta(&position, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
+    std::cout << std::to_string(eval) << std::endl;
     ;
     while (true) {
         std::string input;
-        std::cout << "s - search, m - make a move, d - debug, e - exit"
-                  << std::endl;
+        std::cout << "s - search, m - make a move, d - debug, e - exit" << std::endl;
         std::cin >> input;
         if (input == "s") {
             int innerDepth = 0;
@@ -66,8 +67,7 @@ int main(int argc, char **argv) {
             std::cin >> bufDepth;
             innerDepth = std::atoi(bufDepth.c_str());
             SearchInfo bestMove = search(&position, innerDepth);
-            std::cout << "BestMove"
-                      << squareStringify(moveGetFrom(bestMove.first))
+            std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
                       << squareStringify(moveGetTo(bestMove.first)) << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
         } else if (input == "m") {
