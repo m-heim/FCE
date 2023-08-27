@@ -1,5 +1,6 @@
 #include <bitboard.hpp>
 #include <bits/getopt_core.h>
+#include <core.hpp>
 #include <fen.hpp>
 #include <fstream>
 #include <iostream>
@@ -81,6 +82,13 @@ int main(int argc, char **argv) {
             std::cin >> buf;
             if (buf == "n") {
                 printKnightAttacks();
+            } else if (buf == "b") {
+                std::string squareBuf;
+                std::cout << "Square" << std::endl;
+                std::cin >> squareBuf;
+                std::cout << squareBuf << std::endl;
+                SquareIndex index = getSquareFromString(squareBuf);
+                printBitboard(bishopMagics.at(index).getAttack(emptyBitboard));
             }
         } else {
             exit(1);
