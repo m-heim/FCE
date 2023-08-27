@@ -25,8 +25,7 @@ char piece_to_char(Piece piece) {
     if (piece == Piece::NO_PIECE) {
         return ' ';
     }
-    std::cerr << "Invalid input when converting piece to character"
-              << std::endl;
+    std::cerr << "Invalid input when converting piece to character" << std::endl;
     exit(1);
 }
 
@@ -50,8 +49,7 @@ SquareInfo charToSquareInfo(char piece) {
         info.piece = Piece::KING;
     } else {
         std::cerr << piece << std::endl;
-        std::cerr << "Invalid input when converting character to SquareInfo"
-                  << std::endl;
+        std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
         exit(1);
     }
     return info;
@@ -71,7 +69,7 @@ std::string squareStringify(SquareIndex index) {
     return ret;
 }
 
-SquareIndex getSquareFromString(std::string square) {
+SquareIndex getSquareFromString(const std::string &square) {
     uint8_t col = square.at(0) - 'a';
     uint8_t row = square.at(1) - '1';
     return row * Square::SQUARE_A2 + col;
@@ -106,8 +104,7 @@ std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask) {
     // all subsets: Marcel van Kervinck Chess
     std::array<Bitboard, BITBOARD_SUBSETS_N> result{};
     uint16_t index = 0;
-    for (Bitboard current = 0; current != mask;
-         current = ((current | ~mask) + 1) & mask) {
+    for (Bitboard current = 0; current != mask; current = ((current | ~mask) + 1) & mask) {
         result[index] = current;
         index++;
     }
