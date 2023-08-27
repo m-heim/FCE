@@ -73,10 +73,9 @@ Position parse_fen(const std::string &fen) {
 
     if (en_passant[0] == '-') {
         position.en_passant = SQUARE_NONE;
-    } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' &&
-               en_passant[1] >= '1' && en_passant[1] <= '8') {
-        position.en_passant =
-            (SquareIndex)(en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
+    } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' && en_passant[1] >= '1' &&
+               en_passant[1] <= '8') {
+        position.en_passant = (SquareIndex)(en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
     } else {
         fce_error("Couldn\'t read fen enpassant", 1);
     }
