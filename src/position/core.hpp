@@ -245,7 +245,7 @@ void fce_error(const std::string &message, int exit_code);
 
 std::string squareStringify(SquareIndex index);
 
-SquareIndex getSquareFromString(std::string square);
+SquareIndex getSquareFromString(const std::string &square);
 
 char piece_to_char(Piece piece);
 
