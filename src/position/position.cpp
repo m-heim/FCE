@@ -146,13 +146,14 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
+        // return position->evaluate();
     }
     std::cout << std::to_string(alpha) << " " << std::to_string(beta) << std::endl;
     position->print_board();
-    // if (position->inCheck()) {
-    // std::cout << "IN CHECK, USING SPECIAL GENERATOR";
-    // position->print_board();
-    //}
+    //  if (position->inCheck()) {
+    //  std::cout << "IN CHECK, USING SPECIAL GENERATOR";
+    //  position->print_board();
+    // }
     MoveList moves;
     position->generateMoves(moves);
     Evaluation score = 0;
@@ -177,6 +178,8 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         }
     }
     if (legalMoves == 0) {
+        std::cout << "MATE" << std::endl;
+        position->print_board();
         return EvaluationLiterals::MATE; // checkmate
     }
     return alpha;
@@ -198,9 +201,11 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
     Evaluation score = EvaluationLiterals::EVEN;
     position->generateMoves(moves);
     uint8_t legalMoves = 0;
+    uint8_t captures = 0;
     for (uint8_t index = 0; index < moves.count; index++) {
         Move move = moves.get(index);
         if (moveGetFlags(move) == MoveFlags::CAPTURE) {
+            captures++;
             Position capturePos = *position;
             capturePos.makeMove(move);
             if (capturePos.inCheck(capturePos.opponent)) {
@@ -216,7 +221,8 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
             }
         }
     }
-    if (legalMoves == 0) {
+    // TODO what if there are no captures?
+    if ((legalMoves == 0)) {
         return EvaluationLiterals::MATE;
     }
     return alpha;
