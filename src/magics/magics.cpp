@@ -24,8 +24,7 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
     Bitboard mask = bishop ? getBishopMask(square) : getRookMask(square);
     uint8_t shift = bitboardGetHW(mask);
     uint16_t numOccupancies = 1 << shift;
-    std::array<Bitboard, NUM_POS_OCCUPANCIES> occupancies =
-        getBitboardSubsets(mask);
+    std::array<Bitboard, NUM_POS_OCCUPANCIES> occupancies = getBitboardSubsets(mask);
     std::array<Bitboard, NUM_POS_OCCUPANCIES> attacks{};
     for (int i = 0; i < numOccupancies; i++) {
         attacks[i] = bishop ? getBishopAttacks(square, occupancies[i])
@@ -44,8 +43,7 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
         bool success = true;
         // go through all possible occupancies
         for (int i = 0; (i < numOccupancies) && success; i++) {
-            Bitboard hash =
-                (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift + 1);
+            Bitboard hash = (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift + 1);
             hashtop = std::max(hash, hashtop);
             // if no
             if (attackMap[hash] == 0) {
@@ -85,8 +83,7 @@ int main(int argc, char **argv) {
         std::exit(2);
     }
     initGlobals();
-    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8;
-         square++) {
+    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         std::cout << findMagics(square, bishop) << ",";
         std::flush(std::cout);
     }
