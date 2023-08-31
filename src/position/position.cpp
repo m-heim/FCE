@@ -157,7 +157,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     uint8_t legalMoves = 0;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position newPos = *position;
-        newPos.makeMove(moves);
+        newPos.makeMove(moves.get(i));
         if (newPos.inCheck(newPos.opponent)) {
             // we left ourselves in check
             continue;

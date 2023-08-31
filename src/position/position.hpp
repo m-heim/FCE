@@ -35,7 +35,6 @@ class Position {
     void generatePawnMoves(MoveList &moves);
     void generatePieceMoves(MoveList &moves);
     void generateMoves(MoveList &moves);
-    bool makeMove(Position &position, Move m);
     bool inCheck(Color side);
 };
 
