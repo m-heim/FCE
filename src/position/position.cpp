@@ -21,8 +21,7 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) 
 
 Position::Position() {
     for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-        board[square].color = Color::NO_COLOR;
-        board[square].piece = Piece::NO_PIECE;
+        board[square] = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
     }
     occupation[Color::WHITE] = 0ULL;
     occupation[Color::BLACK] = 0ULL;
@@ -143,6 +142,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     // This search is based on the fact that if we can choose between multiple moves and one of
     // those moves yields in a better position than what our opponent can achieve we can ignore this
     // whole subtree
+    // Add algorithm for repetition
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
@@ -163,7 +163,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
             continue;
         }
         score = -alphaBeta(&newPos, -beta, -alpha, depthleft - 1);
-        legalMoves++;
+        legalMoves += 1;
         // opponent has a better move in the search tree already so return their
         // limit as ours
         if (score >= beta) {
@@ -185,12 +185,14 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
 Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_t depth) {
     positionsEvaluated.at(depth) += 1;
     Evaluation eval = position->evaluate();
+    bool inCheck = position->inCheck(position->to_move);
     if (depth == 0) {
         return eval;
     }
     if (eval >= beta) {
         return beta;
     }
+
     if (alpha < eval) {
         alpha = eval;
     }
@@ -209,7 +211,7 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
                 continue;
             }
             score = -quiesce(&capturePos, -beta, -alpha, depth - 1);
-            legalMoves++;
+            legalMoves += 1;
             if (score >= beta) {
                 return beta;
             }
@@ -219,7 +221,7 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
         }
     }
     // TODO what if there are no captures?
-    if ((legalMoves == 0)) {
+    if (legalMoves == 0) {
         return EvaluationLiterals::MATE;
     }
     return alpha;
