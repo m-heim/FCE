@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
-#define QUIESCE_DEPTH_N 6
-#define SEARCH_DEPTH_N 40
+#define QUIESCE_DEPTH_N 10
+#define SEARCH_DEPTH_N 1000
 class Position {
   public:
     // BOARD REPRESENTATIONS
