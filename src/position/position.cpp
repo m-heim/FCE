@@ -146,10 +146,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
-        // return position->evaluate();
     }
-    std::cout << std::to_string(alpha) << " " << std::to_string(beta) << std::endl;
-    position->print_board();
     //  if (position->inCheck()) {
     //  std::cout << "IN CHECK, USING SPECIAL GENERATOR";
     //  position->print_board();
@@ -159,13 +156,13 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     Evaluation score = 0;
     uint8_t legalMoves = 0;
     for (uint8_t i = 0; i < moves.count; i++) {
-        Position positionWithMyMove = *position;
-        positionWithMyMove.makeMove(moves.get(i));
-        if (positionWithMyMove.inCheck(positionWithMyMove.opponent)) {
+        Position newPos = *position;
+        newPos.makeMove(moves);
+        if (newPos.inCheck(newPos.opponent)) {
             // we left ourselves in check
             continue;
         }
-        score = -alphaBeta(&positionWithMyMove, -beta, -alpha, depthleft - 1);
+        score = -alphaBeta(&newPos, -beta, -alpha, depthleft - 1);
         legalMoves++;
         // opponent has a better move in the search tree already so return their
         // limit as ours
