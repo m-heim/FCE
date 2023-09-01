@@ -180,9 +180,6 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     if (legalMoves == 0) {
         std::cout << "MATE" << std::endl;
         std::cout << "MOVES:" << moves.stringify() << std::endl;
-        printBitboard(position->bitboards[position->to_move][Piece::QUEEN]);
-        printBitboard(position->occupation[position->opponent]);
-        printBitboard(position->bitboards[position->opponent][Piece::KNIGHT]);
         position->print_board();
         return EvaluationLiterals::MATE; // checkmate
     }
