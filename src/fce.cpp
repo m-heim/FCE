@@ -88,8 +88,15 @@ int main(int argc, char **argv) {
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
                 SquareIndex index = stringToSquareIndex(squareBuf);
-                printBitboard(bishopMagics.at(index).getAttack(fileC | rank2 |
-                                                               maskedSquare[Square::SQUARE_D1]));
+                printBitboard(bishopMagics.at(index).mask);
+                printBitboard(bishopMagics.at(index).getAttack(fileC | fileD | fileE | rank2 |
+                                                               rank3 | rank4));
+                std::array<Bitboard, BITBOARD_SUBSETS_N> subsets =
+                    getBitboardSubsets(bishopMasks.at(index));
+                for (int i = 0; i < bitboardGetHW(bishopMasks.at(index)); i++) {
+                    printBitboard(subsets.at(i));
+                    printBitboard(bishopMagics.at(index).getAttack(subsets.at(i)));
+                }
             }
         } else {
             exit(1);
