@@ -6,9 +6,11 @@
 #include <strings.h>
 #include <vector>
 
-#define BITBOARD_SUBSETS_N 4096
-
+// typedefs
 typedef std::uint64_t Bitboard;
+
+// constansts
+constexpr uint64_t BITBOARD_SUBSETS_N = 4096;
 
 constexpr Bitboard emptyBitboard = 0x0000000000000000;
 constexpr Bitboard fullBitboard = ~emptyBitboard;
@@ -60,11 +62,11 @@ constexpr Bitboard notCenter = ~center;
 constexpr Bitboard extendedCenter =
     (fileC | fileD | fileE | fileF) & (rank3 | rank4 | rank5 | rank6);
 
-// Get all possible combinations of bits in a mask
+// non performance relevant functions
 std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask);
-
 void printBitboard(Bitboard board);
 
+// inline functions
 inline Bitboard bitboardSetSquare(SquareIndex index) {
     return 1ULL << index;
 }
@@ -74,16 +76,13 @@ inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
 inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
     *board &= ~bitboardSetSquare(index);
 }
-
-// cpu inline
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
     return ffsll(bitboard) - 1;
 }
 inline SquareIndex get_ms1b_index(Bitboard bitboard) {
-    // NOTE returns 63 if no bit is set
+    // NOTE if bb empty = 63
     return 63 - __builtin_clzll(bitboard);
 }
-
 inline uint8_t bitboardGetHW(Bitboard bitboard) {
     return std::popcount<Bitboard>(bitboard);
 }

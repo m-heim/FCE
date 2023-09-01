@@ -80,6 +80,7 @@ enum Square : SquareIndex {
 std::string squareIndexStringify(SquareIndex index);
 SquareIndex stringToSquareIndex(const std::string &square);
 void squareIndexPrint(SquareIndex index);
+bool squareIndexValidate(const std::string &square);
 
 // classes
 class SquareInfo {

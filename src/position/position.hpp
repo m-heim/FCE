@@ -29,7 +29,7 @@ class Position {
     uint16_t plies;
     uint16_t plies_since_capture;
     Position() = default;
-    Position(std::string fen);
+    Position(const std::string &fen);
     void setSquare(SquareIndex square, Color color, Piece piece);
     std::string stringify_board();
     void print_board();

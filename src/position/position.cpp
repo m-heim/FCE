@@ -20,36 +20,46 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) 
     occupation[colorVal] |= mask;          // add piece to occupations
 }
 
-Position::Position(std::string fen) {
+Position::Position() {
+    SquareInfo empty = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
     for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-        board[square] = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
+        board[square] = empty;
     }
+    memset(&bitboards, 0, sizeof(bitboards));
     occupation[Color::WHITE] = 0ULL;
     occupation[Color::BLACK] = 0ULL;
     occupation[Color::NO_COLOR] = 0ULL;
+    plies = 0;
+    plies_since_capture = 0;
+    to_move = Color::WHITE;
+    opponent = Color::BLACK;
+    en_passant = Square::SQUARE_NONE;
+}
+
+Position::Position(const std::string &fen) {
 
     int start = 0;
     size_t next = fen.find(' ', start);
-    std::string board = fen.substr(start, next - start);
+    std::string board_ = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find(' ', start);
-    std::string side = fen.substr(start, next - start);
+    std::string side_ = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find(' ', start);
-    std::string castling = fen.substr(start, next - start);
+    std::string castling_ = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find(' ', start);
-    std::string en_passant = fen.substr(start, next - start);
+    std::string en_passant_ = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find(' ', start);
-    std::string move_since_capture = fen.substr(start, next - start);
+    std::string move_since_capture_ = fen.substr(start, next - start);
     start = next + 1;
     next = fen.find('\0', start);
-    std::string move = fen.substr(start, next - start);
+    std::string move_ = fen.substr(start, next - start);
 
-    uint8_t row = 7;
-    uint8_t col = 0;
-    for (char curr : board) {
+    uint8_t row = Rank::RANK_8;
+    uint8_t col = File::FILE_A;
+    for (char curr : board_) {
         if (curr == '/') {
             row -= 1;
             col = 0;
@@ -58,21 +68,21 @@ Position::Position(std::string fen) {
             col += moveCols;
         } else {
             auto square = SquareInfo(curr);
-            setSquare((row << 3) + col, square.color, square.piece);
+            setSquare((Square::SQUARE_A2 * row) + col, square.color, square.piece);
             col++;
         }
     }
-    if (side == "w") {
+    if (side_ == "w") {
         to_move = Color::WHITE;
         opponent = Color::BLACK;
-    } else if (side == "b") {
+    } else if (side_ == "b") {
         to_move = Color::BLACK;
         opponent = Color::WHITE;
     } else {
         fce_error("Couldn\'t parse side to move in fen", 1);
     }
 
-    for (auto curr : castling) {
+    for (auto curr : castling_) {
         if (curr == 'K') {
             castle_rights[Color::WHITE][Castle::KINGSIDE] = true;
         } else if (curr == 'k') {
@@ -91,17 +101,16 @@ Position::Position(std::string fen) {
             fce_error("Could\'t read fen castling", 1);
         }
     }
-
-    if (en_passant[0] == '-') {
-        en_passant = SQUARE_NONE;
-    } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' && en_passant[1] >= '1' &&
-               en_passant[1] <= '8') {
-        en_passant = (SquareIndex)(en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
+    // NOTE this works?
+    if (en_passant_.at(0) == '-') {
+        en_passant = Square::SQUARE_NONE;
+    } else if (squareIndexValidate(en_passant_)) {
+        en_passant = stringToSquareIndex(en_passant_);
     } else {
         fce_error("Couldn\'t read fen enpassant", 1);
     }
-    plies_since_capture = std::stoi(move_since_capture);
-    plies = std::stoi(move);
+    plies_since_capture = std::stoi(move_since_capture_);
+    plies = std::stoi(move_);
 }
 
 std::string Position::stringify_board() {

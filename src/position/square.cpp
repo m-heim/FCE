@@ -45,6 +45,11 @@ SquareInfo::SquareInfo(char piece) {
     }
 }
 
+bool squareIndexValidate(const std::string &square) {
+    return square.length() == 2 &&
+           (square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8');
+}
+
 SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
     color = colorVal;
     piece = pieceVal;

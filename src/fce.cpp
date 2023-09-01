@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
 
     initGlobals();
     Position position(fen);
+    position.print_board();
 
     MoveList moves;
     position.generateMoves(moves);
