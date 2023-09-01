@@ -88,21 +88,17 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     Bitboard king = bitboards[to_move][Piece::KING];
     while (queen) {
         SquareIndex from = get_ls1b_index(queen);
-        Bitboard result = rookMagics[from].getAttack(rookMasks[from] & oursOrTheirs);
-        Bitboard result2 = bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
+        Bitboard result =
+            rookMagics[from].getAttack(oursOrTheirs) | bishopMagics[from].getAttack(oursOrTheirs);
         Bitboard attacks = result & theirs;
         Bitboard quiet = result & neitherOursAndTheirs;
-        Bitboard attacks2 = result2 & theirs;
-        Bitboard quiet2 = result2 & neitherOursAndTheirs;
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
         moves.addMoves(from, quiet, MoveFlags::QUIET);
-        moves.addMoves(from, attacks2, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet2, MoveFlags::QUIET);
         queen &= unmaskedSquare[from];
     }
     while (bishop) {
         SquareIndex from = get_ls1b_index(bishop);
-        Bitboard result = bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
+        Bitboard result = bishopMagics[from].getAttack(oursOrTheirs);
         Bitboard attacks = result & theirs;
         Bitboard quiet = result & neitherOursAndTheirs;
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
@@ -119,7 +115,7 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     }
     while (rook) {
         SquareIndex from = get_ls1b_index(rook);
-        Bitboard result = rookMagics[from].getAttack(rookMasks[from] & oursOrTheirs);
+        Bitboard result = rookMagics[from].getAttack(oursOrTheirs);
         Bitboard attacks = result & theirs;
         Bitboard quiet = result & neitherOursAndTheirs;
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
