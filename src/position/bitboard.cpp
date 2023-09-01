@@ -8,9 +8,13 @@ std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask) {
     // all subsets: Marcel van Kervinck Chess
     std::array<Bitboard, BITBOARD_SUBSETS_N> result{};
     uint16_t index = 0;
-    for (Bitboard current = 0; current != mask; current = ((current | ~mask) + 1) & mask) {
+    for (Bitboard current = 0;;) {
+        current = ((current | ~mask) + 1) & mask;
         result[index] = current;
         index++;
+        if (current == mask) {
+            break;
+        }
     }
     return result;
 }
