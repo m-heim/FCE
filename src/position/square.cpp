@@ -20,26 +20,26 @@ SquareIndex stringToSquareIndex(const std::string &square) {
     return row * Square::SQUARE_A2 + col;
 }
 
-SquareInfo::SquareInfo(char piece) {
-    color = (piece >= 'a' && piece <= 'z' ? Color::BLACK : Color::WHITE);
-    if (piece == 'p' || piece == 'P') {
+SquareInfo::SquareInfo(char pieceAsChar) {
+    Color colorVal = (pieceAsChar >= 'a' && pieceAsChar <= 'z' ? Color::BLACK : Color::WHITE);
+    if (pieceAsChar == 'p' || pieceAsChar == 'P') {
         piece = Piece::PAWN;
-    } else if (piece == 'n' || piece == 'N') {
+        color = colorVal;
+    } else if (pieceAsChar == 'n' || pieceAsChar == 'N') {
         piece = Piece::KNIGHT;
-    } else if (piece == 'b' || piece == 'B') {
+        color = colorVal;
+    } else if (pieceAsChar == 'b' || pieceAsChar == 'B') {
         piece = Piece::BISHOP;
-    } else if (piece == 'r' || piece == 'R') {
+        color = colorVal;
+    } else if (pieceAsChar == 'r' || pieceAsChar == 'R') {
         piece = Piece::ROOK;
-    } else if (piece == 'q' || piece == 'Q') {
+        color = colorVal;
+    } else if (pieceAsChar == 'q' || pieceAsChar == 'Q') {
         piece = Piece::QUEEN;
-        //} else if (piece == ' ') {
-        //  info.piece = Piece::NO_PIECE;
-        //  info.color = Color::NO_COLOR;
-    } else if (piece == 'k' || piece == 'K') {
+        color = colorVal;
+    } else if (pieceAsChar == 'k' || pieceAsChar == 'K') {
         piece = Piece::KING;
     } else {
-        piece = Piece::NO_PIECE;
-        std::cerr << piece << std::endl;
         std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
         exit(1);
     }

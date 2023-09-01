@@ -8,14 +8,16 @@
 #include <iostream>
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) {
-    Piece piece = board[squareVal].piece;
-    Color color = board[squareVal].color;
+    Piece oldPiece = board[squareVal].piece;
+    Color oldColor = board[squareVal].color;
     board[squareVal].color = colorVal;
     board[squareVal].piece = pieceVal;
 
     Bitboard mask = maskedSquare[squareVal];
-    bitboards[color][piece] &= ~mask;      // remove piece from bitboard
-    occupation[color] &= ~mask;            // remove piece from occupations
+    Bitboard unmasked = unmaskedSquare[squareVal];
+    bitboards[oldColor][oldPiece] &= unmasked; // remove piece from bitboard
+    occupation[oldColor] &= unmasked;          // remove piece from occupations
+
     bitboards[colorVal][pieceVal] |= mask; // add piece to bitboard
     occupation[colorVal] |= mask;          // add piece to occupations
 }
@@ -34,83 +36,6 @@ Position::Position() {
     to_move = Color::WHITE;
     opponent = Color::BLACK;
     en_passant = Square::SQUARE_NONE;
-}
-
-Position::Position(const std::string &fen) {
-
-    int start = 0;
-    size_t next = fen.find(' ', start);
-    std::string board_ = fen.substr(start, next - start);
-    start = next + 1;
-    next = fen.find(' ', start);
-    std::string side_ = fen.substr(start, next - start);
-    start = next + 1;
-    next = fen.find(' ', start);
-    std::string castling_ = fen.substr(start, next - start);
-    start = next + 1;
-    next = fen.find(' ', start);
-    std::string en_passant_ = fen.substr(start, next - start);
-    start = next + 1;
-    next = fen.find(' ', start);
-    std::string move_since_capture_ = fen.substr(start, next - start);
-    start = next + 1;
-    next = fen.find('\0', start);
-    std::string move_ = fen.substr(start, next - start);
-
-    uint8_t row = Rank::RANK_8;
-    uint8_t col = File::FILE_A;
-    for (char curr : board_) {
-        if (curr == '/') {
-            row -= 1;
-            col = 0;
-        } else if (curr >= '0' && curr <= '9') {
-            int moveCols = curr - '0';
-            col += moveCols;
-        } else {
-            auto square = SquareInfo(curr);
-            setSquare((Square::SQUARE_A2 * row) + col, square.color, square.piece);
-            col++;
-        }
-    }
-    if (side_ == "w") {
-        to_move = Color::WHITE;
-        opponent = Color::BLACK;
-    } else if (side_ == "b") {
-        to_move = Color::BLACK;
-        opponent = Color::WHITE;
-    } else {
-        fce_error("Couldn\'t parse side to move in fen", 1);
-    }
-
-    for (auto curr : castling_) {
-        if (curr == 'K') {
-            castle_rights[Color::WHITE][Castle::KINGSIDE] = true;
-        } else if (curr == 'k') {
-            castle_rights[Color::BLACK][Castle::KINGSIDE] = true;
-        } else if (curr == 'q') {
-            castle_rights[Color::BLACK][Castle::QUEENSIDE] = true;
-        } else if (curr == 'Q') {
-            castle_rights[Color::WHITE][Castle::QUEENSIDE] = true;
-        } else if (curr == '-') {
-            castle_rights[Color::BLACK][Castle::QUEENSIDE] = false;
-            castle_rights[Color::BLACK][Castle::KINGSIDE] = false;
-            castle_rights[Color::WHITE][Castle::QUEENSIDE] = false;
-            castle_rights[Color::WHITE][Castle::KINGSIDE] = false;
-            break;
-        } else {
-            fce_error("Could\'t read fen castling", 1);
-        }
-    }
-    // NOTE this works?
-    if (en_passant_.at(0) == '-') {
-        en_passant = Square::SQUARE_NONE;
-    } else if (squareIndexValidate(en_passant_)) {
-        en_passant = stringToSquareIndex(en_passant_);
-    } else {
-        fce_error("Couldn\'t read fen enpassant", 1);
-    }
-    plies_since_capture = std::stoi(move_since_capture_);
-    plies = std::stoi(move_);
 }
 
 std::string Position::stringify_board() {
@@ -229,25 +154,24 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     // Add algorithm for repetition
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
-        return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
+        // return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
+        return position->evaluate();
     }
-    //  if (position->inCheck()) {
-    //  std::cout << "IN CHECK, USING SPECIAL GENERATOR";
-    //  position->print_board();
-    // }
-    MoveList moves;
+    MoveList moves{};
     position->generateMoves(moves);
+
     Evaluation score = 0;
     uint8_t legalMoves = 0;
+
     for (uint8_t i = 0; i < moves.count; i++) {
         Position newPos = *position;
         newPos.makeMove(moves.get(i));
-        if (newPos.inCheck(newPos.opponent)) {
+        if (newPos.inCheck(position->to_move)) {
             // we left ourselves in check
             continue;
         }
-        score = -alphaBeta(&newPos, -beta, -alpha, depthleft - 1);
         legalMoves += 1;
+        score = -alphaBeta(&newPos, -beta, -alpha, depthleft - 1);
         // opponent has a better move in the search tree already so return their
         // limit as ours
         if (score >= beta) {
@@ -260,6 +184,10 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     }
     if (legalMoves == 0) {
         std::cout << "MATE" << std::endl;
+        std::cout << "MOVES:" << moves.stringify() << std::endl;
+        printBitboard(position->bitboards[position->to_move][Piece::QUEEN]);
+        printBitboard(position->occupation[position->opponent]);
+        printBitboard(position->bitboards[position->opponent][Piece::KNIGHT]);
         position->print_board();
         return EvaluationLiterals::MATE; // checkmate
     }
@@ -276,11 +204,10 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
     if (eval >= beta) {
         return beta;
     }
-
     if (alpha < eval) {
         alpha = eval;
     }
-    MoveList moves{};
+    MoveList moves;
     Evaluation score = EvaluationLiterals::EVEN;
     position->generateMoves(moves);
     uint8_t legalMoves = 0;
@@ -305,7 +232,7 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
         }
     }
     // TODO what if there are no captures?
-    if (legalMoves == 0) {
+    if (inCheck && legalMoves == 0 && captures > 0) {
         return EvaluationLiterals::MATE;
     }
     return alpha;
@@ -318,8 +245,8 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << std::to_string(moves.count) << std::endl;
     Evaluation best = EvaluationLiterals::NEG_INF;
     Move bestMove = no_move;
-    Evaluation alpha;
-    Evaluation beta;
+    Evaluation alpha = EvaluationLiterals::NEG_INF;
+    Evaluation beta = EvaluationLiterals::POS_INF;
     for (uint8_t index = 0; index < moves.count; index++) {
         Position newPos = *position;
         Move move = moves.get(index);

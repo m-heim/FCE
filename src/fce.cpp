@@ -1,6 +1,7 @@
 #include <bitboard.hpp>
 #include <bits/getopt_core.h>
 #include <chess.hpp>
+#include <fen.hpp>
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
@@ -39,8 +40,7 @@ int main(int argc, char **argv) {
     fen_file_stream.close();
 
     initGlobals();
-    Position position(fen);
-    position.print_board();
+    Position position = parseFen(fen);
 
     MoveList moves;
     position.generateMoves(moves);
@@ -88,7 +88,8 @@ int main(int argc, char **argv) {
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
                 SquareIndex index = stringToSquareIndex(squareBuf);
-                printBitboard(bishopMagics.at(index).getAttack(emptyBitboard));
+                printBitboard(bishopMagics.at(index).getAttack(fileC | rank2 |
+                                                               maskedSquare[Square::SQUARE_D1]));
             }
         } else {
             exit(1);

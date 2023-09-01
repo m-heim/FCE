@@ -43,7 +43,7 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
         bool success = true;
         // go through all possible occupancies
         for (int i = 0; (i < numOccupancies) && success; i++) {
-            Bitboard hash = (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift + 1);
+            Bitboard hash = (occupancies[i] * magic) >> (Square::SQUARE_COUNT - shift);
             hashtop = std::max(hash, hashtop);
             // if no
             if (attackMap[hash] == 0) {

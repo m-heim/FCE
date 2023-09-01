@@ -28,15 +28,14 @@ class Position {
     SquareIndex en_passant;
     uint16_t plies;
     uint16_t plies_since_capture;
-    Position() = default;
-    Position(const std::string &fen);
+    Position();
     void setSquare(SquareIndex square, Color color, Piece piece);
     std::string stringify_board();
     void print_board();
     Evaluation evaluate(void);
     Evaluation evaluateMaterial(void);
     Evaluation evaluatePosition(void);
-    bool makeMove(Move m);
+    void makeMove(Move m);
     inline bool kingExists() {
         return bitboards[to_move][Piece::KING] != 0;
     }
@@ -57,13 +56,10 @@ inline Evaluation Position::evaluatePosition(void) {
     return eval;
 }
 
-inline bool Position::makeMove(Move m) {
+inline void Position::makeMove(Move m) {
     SquareIndex from = moveGetFrom(m);
     SquareIndex to = moveGetTo(m);
     // if we take the opponents king
-    if (bitboardSetSquare(to) == bitboards[opponent][Piece::KING]) {
-        return false;
-    }
     uint8_t flags = moveGetFlags(m);
     SquareInfo movingPiece = board[from];
     if (flags == MoveFlags::QUIET) {
@@ -76,9 +72,8 @@ inline bool Position::makeMove(Move m) {
     }
     plies += 1;
     opponent = to_move;
-    to_move = static_cast<Color>(to_move ^ 1);
-
-    return true;
+    to_move = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
+    return;
 }
 
 inline void Position::generatePieceMoves(MoveList &moves) {
@@ -91,6 +86,20 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     Bitboard rook = bitboards[to_move][Piece::ROOK];
     Bitboard queen = bitboards[to_move][Piece::QUEEN];
     Bitboard king = bitboards[to_move][Piece::KING];
+    while (queen) {
+        SquareIndex from = get_ls1b_index(queen);
+        Bitboard result = rookMagics[from].getAttack(rookMasks[from] & oursOrTheirs);
+        Bitboard result2 = bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
+        Bitboard attacks = result & theirs;
+        Bitboard quiet = result & neitherOursAndTheirs;
+        Bitboard attacks2 = result2 & theirs;
+        Bitboard quiet2 = result2 & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet, MoveFlags::QUIET);
+        moves.addMoves(from, attacks2, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet2, MoveFlags::QUIET);
+        queen &= unmaskedSquare[from];
+    }
     while (bishop) {
         SquareIndex from = get_ls1b_index(bishop);
         Bitboard result = bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
@@ -116,16 +125,6 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
         moves.addMoves(from, quiet, MoveFlags::QUIET);
         rook &= unmaskedSquare[from];
-    }
-    while (queen) {
-        SquareIndex from = get_ls1b_index(queen);
-        Bitboard result = rookMagics[from].getAttack(rookMasks[from] & oursOrTheirs) |
-                          bishopMagics[from].getAttack(bishopMasks[from] & oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        queen &= unmaskedSquare[from];
     }
     if (king) {
         SquareIndex from = get_ls1b_index(king);
@@ -184,7 +183,7 @@ inline bool Position::inCheck(Color side) {
     Bitboard bishop = bishopMagics.at(square).getAttack(getBishopMask(square) & oursAndTheirs) &
                       (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::BISHOP]);
     Bitboard pawn = pawnAttacks[side][square] & opponentPieces[Piece::PAWN];
-    return knight | rook | bishop | pawn;
+    return (knight | rook | bishop | pawn) > emptyBitboard;
 }
 
 inline void Position::generatePawnMoves(MoveList &moves) {

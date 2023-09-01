@@ -43,18 +43,28 @@ class MoveList {
   public:
     uint8_t count = 0;
     std::array<Move, MOVE_LIMIT_N> moves;
+    MoveList() = default;
     inline Move get(uint8_t index) {
         return moves[index];
     }
-    inline void push_back(Move move) {
+    void push_back(Move move) {
         moves[count] = move;
         count++;
     }
-    inline void addMoves(const SquareIndex &from, Bitboard &board, MoveFlags flags) {
+    inline void addMoves(const SquareIndex &from, Bitboard board, MoveFlags flags) {
         while (board) {
             SquareIndex to = get_ls1b_index(board);
             push_back(encodeMove(from, to, flags));
             board &= unmaskedSquare[to];
         }
+    }
+    inline std::string stringify() {
+        std::string result;
+        for (uint8_t i = 0; i < count; i++) {
+            std::string fromSquare = squareIndexStringify(moveGetFrom(moves[i]));
+            std::string toSquare = squareIndexStringify(moveGetTo(moves[i]));
+            result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + "\n");
+        }
+        return result;
     }
 };
