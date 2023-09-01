@@ -1,6 +1,7 @@
 #pragma once
 #include "chess.hpp"
 #include <cstdint>
+#include <iostream>
 #include <string>
 
 // typedefs
@@ -88,6 +89,6 @@ class SquareInfo {
     Color color;
     Piece piece;
     SquareInfo(Color colorVal, Piece pieceVal);
-    SquareInfo(char piece);
+    SquareInfo(char pieceAsChar);
     SquareInfo() = default;
 };

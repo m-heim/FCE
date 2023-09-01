@@ -45,6 +45,9 @@ enum EvaluationLiterals : Evaluation {
     KING_VAL = 2000000,
     POS_INF = 100000000000,
     MATE = NEG_INF + 1000,
+    MULTIPLE_PAWN_VAL = -50,
+    MULTIPLE_BISHOP_VAL = 150,
+    CENTER_PAWN_VAL = 100,
     EVEN = 0
 };
 

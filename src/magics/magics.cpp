@@ -4,9 +4,9 @@
 #include <cstring>
 #include <iostream>
 #include <random>
-#define NUM_POS_OCCUPANCIES 4096
-#define MIN_BITS_MAGIC 6
-#define ATTEMPTS_FIND_MAGIC 10000000000
+
+constexpr uint64_t MIN_BITS_MAGIC = 6;
+constexpr uint64_t ATTEMPTS_FIND_MAGIC = 10000000000ULL;
 
 std::random_device randDev;
 std::default_random_engine randEngine(randDev());
@@ -24,15 +24,15 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
     Bitboard mask = bishop ? getBishopMask(square) : getRookMask(square);
     uint8_t shift = bitboardGetHW(mask);
     uint16_t numOccupancies = 1 << shift;
-    std::array<Bitboard, NUM_POS_OCCUPANCIES> occupancies = getBitboardSubsets(mask);
-    std::array<Bitboard, NUM_POS_OCCUPANCIES> attacks{};
+    std::array<Bitboard, BITBOARD_SUBSETS_N> occupancies = getBitboardSubsets(mask);
+    std::array<Bitboard, BITBOARD_SUBSETS_N> attacks{};
     for (int i = 0; i < numOccupancies; i++) {
         attacks[i] = bishop ? getBishopAttacks(square, occupancies[i])
                             : getRookAttacks(square, occupancies[i]);
     }
     Bitboard hashtop = 0;
     // the map that will contain the attacks after hashing the bitboard
-    std::array<Bitboard, NUM_POS_OCCUPANCIES> attackMap{};
+    std::array<Bitboard, BITBOARD_SUBSETS_N> attackMap{};
     for (uint64_t attempt = 0; attempt < ATTEMPTS_FIND_MAGIC; attempt++) {
         Bitboard magic = randomBitboard() & randomBitboard();
         if (bitboardGetHW((mask * magic) & rank8) < MIN_BITS_MAGIC) {

@@ -20,31 +20,6 @@ SquareIndex stringToSquareIndex(const std::string &square) {
     return row * Square::SQUARE_A2 + col;
 }
 
-SquareInfo::SquareInfo(char pieceAsChar) {
-    Color colorVal = (pieceAsChar >= 'a' && pieceAsChar <= 'z' ? Color::BLACK : Color::WHITE);
-    if (pieceAsChar == 'p' || pieceAsChar == 'P') {
-        piece = Piece::PAWN;
-        color = colorVal;
-    } else if (pieceAsChar == 'n' || pieceAsChar == 'N') {
-        piece = Piece::KNIGHT;
-        color = colorVal;
-    } else if (pieceAsChar == 'b' || pieceAsChar == 'B') {
-        piece = Piece::BISHOP;
-        color = colorVal;
-    } else if (pieceAsChar == 'r' || pieceAsChar == 'R') {
-        piece = Piece::ROOK;
-        color = colorVal;
-    } else if (pieceAsChar == 'q' || pieceAsChar == 'Q') {
-        piece = Piece::QUEEN;
-        color = colorVal;
-    } else if (pieceAsChar == 'k' || pieceAsChar == 'K') {
-        piece = Piece::KING;
-    } else {
-        std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
-        exit(1);
-    }
-}
-
 bool squareIndexValidate(const std::string &square) {
     return square.length() == 2 &&
            (square[0] >= 'a' && square[0] <= 'h' && square[1] >= '1' && square[1] <= '8');
@@ -53,4 +28,23 @@ bool squareIndexValidate(const std::string &square) {
 SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
     color = colorVal;
     piece = pieceVal;
+}
+SquareInfo::SquareInfo(char pieceAsChar) {
+    color = (pieceAsChar >= 'a' && pieceAsChar <= 'z' ? Color::BLACK : Color::WHITE);
+    if (pieceAsChar == 'p' || pieceAsChar == 'P') {
+        piece = Piece::PAWN;
+    } else if (pieceAsChar == 'n' || pieceAsChar == 'N') {
+        piece = Piece::KNIGHT;
+    } else if (pieceAsChar == 'b' || pieceAsChar == 'B') {
+        piece = Piece::BISHOP;
+    } else if (pieceAsChar == 'r' || pieceAsChar == 'R') {
+        piece = Piece::ROOK;
+    } else if (pieceAsChar == 'q' || pieceAsChar == 'Q') {
+        piece = Piece::QUEEN;
+    } else if (pieceAsChar == 'k' || pieceAsChar == 'K') {
+        piece = Piece::KING;
+    } else {
+        std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
+        exit(1);
+    }
 }

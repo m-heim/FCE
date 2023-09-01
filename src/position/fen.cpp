@@ -25,8 +25,8 @@ Position parseFen(const std::string &fen) {
 
     Position position{};
 
-    uint8_t row = 7;
-    uint8_t col = 0;
+    uint8_t row = Rank::RANK_8;
+    uint8_t col = File::FILE_A;
     for (char curr : board) {
         if (curr == '/') {
             row -= 1;
@@ -36,7 +36,7 @@ Position parseFen(const std::string &fen) {
             col += moveCols;
         } else {
             auto square = SquareInfo(curr);
-            position.setSquare((row << 3) + col, square.color, square.piece);
+            position.setSquare((row * Square::SQUARE_A2) + col, square.color, square.piece);
             col++;
         }
     }

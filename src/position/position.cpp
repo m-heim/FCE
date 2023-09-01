@@ -79,23 +79,23 @@ inline Evaluation Position::evaluateMaterial() {
             // doubled pawns
             for (uint8_t col = 0; col < Square::SQUARE_A2; col++) {
                 Bitboard file = fileAttacks[col];
-                eval -= (std::max<int>(
+                eval += (std::max<Evaluation>(
                             0, bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & file) - 1)) *
-                        50;
-                eval += (std::max<int>(
+                        EvaluationLiterals::MULTIPLE_PAWN_VAL;
+                eval -= (std::max<Evaluation>(
                             0, bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & file) - 1)) *
-                        50;
+                        EvaluationLiterals::MULTIPLE_PAWN_VAL;
             }
-            eval += bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & center) * 50;
-            eval -= bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & center) * 50;
+            eval += bitboardGetHW(bitboards[Color::WHITE][Piece::PAWN] & center) *
+                    EvaluationLiterals::CENTER_PAWN_VAL;
+            eval -= bitboardGetHW(bitboards[Color::BLACK][Piece::PAWN] & center) *
+                    EvaluationLiterals::CENTER_PAWN_VAL;
         }
         if (piece == Piece::BISHOP) {
-            Evaluation whiteAdditionalBishops =
-                std::max<int>(0, bitboardGetHW(bitboards[Color::WHITE][Piece::BISHOP]) - 1);
-            Evaluation blackAdditionalBishops =
-                std::max<int>(0, bitboardGetHW(bitboards[Color::BLACK][Piece::BISHOP]) - 1);
-            eval += whiteAdditionalBishops * 200;
-            eval -= blackAdditionalBishops * 200;
+            eval += std::max<int>(0, bitboardGetHW(bitboards[Color::WHITE][Piece::BISHOP]) - 1) *
+                    EvaluationLiterals::MULTIPLE_BISHOP_VAL;
+            eval -= std::max<int>(0, bitboardGetHW(bitboards[Color::BLACK][Piece::BISHOP]) - 1) *
+                    EvaluationLiterals::MULTIPLE_BISHOP_VAL;
         }
     }
     return (to_move == Color::WHITE) ? eval : -eval;
@@ -108,15 +108,11 @@ Evaluation negaMax(Position position, uint16_t depth) {
     Evaluation max = EvaluationLiterals::NEG_INF;
     MoveList moves;
     position.generateMoves(moves);
-    // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position newPos = position;
         newPos.makeMove(moves.get(i));
-        // std::cout << p.stringify_board() << std::endl;
         Evaluation current = -negaMax(newPos, depth - 1);
-        // std::cout << current << std::endl;
         if (current > max) {
-            // std::cout << "BETTER MOVE" << std::endl;
             max = current;
         }
     }
@@ -131,7 +127,6 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     MoveList moves;
     Evaluation max = EvaluationLiterals::NEG_INF;
     position.generateMoves(moves);
-    // std::cout << "Found" << moves.size() << "moves" << std::endl;
     for (uint8_t i = 0; i < moves.count; i++) {
         Position newPos = position;
         Move move = moves.get(i);
@@ -271,5 +266,5 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << "Total of:\n"
               << std::to_string(positions) << "\nat:\n"
               << std::to_string(rate) << "MP/s" << std::endl;
-    return std::pair<Move, Evaluation>(bestMove, best);
+    return {bestMove, best};
 }

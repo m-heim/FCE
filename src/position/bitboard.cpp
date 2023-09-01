@@ -21,7 +21,7 @@ void printBitboard(Bitboard board) {
         std::cout << (char)('1' + row);
         for (int8_t col = 0; col <= File::FILE_TOP; col++) {
             std::cout << " ";
-            uint8_t index = row * 8 + col;
+            uint8_t index = row * Square::SQUARE_A2 + col;
             std::cout << (board >> index) % 2;
         }
         std::cout << "\n";

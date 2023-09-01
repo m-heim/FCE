@@ -5,9 +5,11 @@
 #include <array>
 #include <cstdint>
 
+// typedefs
 typedef std::uint16_t Move;
 
-#define MOVE_LIMIT_N 256
+// constants
+constexpr uint64_t MOVE_LIMIT_N = 256;
 constexpr Move no_move = 65;
 
 enum MoveFlags : std::uint8_t {
@@ -24,15 +26,15 @@ enum MoveFlags : std::uint8_t {
 };
 
 inline SquareIndex moveGetFrom(Move m) {
-    return (m >> 6) & 0x3f;
+    return (m >> 6) & Square::SQUARE_H8;
 }
 inline SquareIndex moveGetTo(Move m) {
-    return m & 0x3f;
+    return m & Square::SQUARE_H8;
 }
 
 // FIXME
 inline MoveFlags moveGetFlags(Move m) {
-    return static_cast<MoveFlags>((m >> 12) & MoveFlags::MASK);
+    return static_cast<MoveFlags>(MoveFlags::MASK & (m >> 12));
 }
 
 inline Move encodeMove(SquareIndex from, SquareIndex to, uint8_t flags) {
@@ -47,7 +49,7 @@ class MoveList {
     inline Move get(uint8_t index) {
         return moves[index];
     }
-    void push_back(Move move) {
+    inline void push_back(Move move) {
         moves[count] = move;
         count++;
     }
