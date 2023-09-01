@@ -53,7 +53,7 @@ class MoveList {
         moves[count] = move;
         count++;
     }
-    inline void addMoves(const SquareIndex &from, Bitboard board, MoveFlags flags) {
+    inline void addMoves(SquareIndex from, Bitboard board, MoveFlags flags) {
         while (board) {
             SquareIndex to = get_ls1b_index(board);
             push_back(encodeMove(from, to, flags));
