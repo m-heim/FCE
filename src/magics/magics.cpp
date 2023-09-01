@@ -1,5 +1,5 @@
 #include "bitboard.hpp"
-#include "core.hpp"
+#include "chess.hpp"
 #include "magic.hpp"
 #include <cstring>
 #include <iostream>

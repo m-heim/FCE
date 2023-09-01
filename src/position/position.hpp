@@ -1,27 +1,35 @@
 #pragma once
 #include "bitboard.hpp"
-#include "core.hpp"
+#include "chess.hpp"
 #include "magic.hpp"
+#include "move.hpp"
+#include "square.hpp"
 #include <array>
 #include <cstdint>
 #include <iostream>
 #include <vector>
-#define QUIESCE_DEPTH_N 10
-#define SEARCH_DEPTH_N 1000
+
+// typedefs
+typedef std::pair<Move, Evaluation> SearchInfo;
+
+// constants
+constexpr uint64_t SEARCH_DEPTH_N = 1000;
+constexpr uint64_t QUIESCE_DEPTH_N = 10;
+
 class Position {
   public:
     // BOARD REPRESENTATIONS
     std::array<SquareInfo, Square::SQUARE_COUNT> board;
     std::array<std::array<Bitboard, Piece::PIECE_TOP + 1>, Color::COLOR_TOP + 1> bitboards;
     std::array<Bitboard, Color::COLOR_TOP + 1> occupation;
+    std::array<std::array<bool, Castle::CASTLE_TOP + 1>, Color::BLACK + 1> castle_rights;
     Color to_move;
     Color opponent;
     SquareIndex en_passant;
     uint16_t plies;
     uint16_t plies_since_capture;
-    std::array<std::array<bool, Castle::CASTLE_TOP + 1>, Color::BLACK + 1> castle_rights;
-
-    Position();
+    Position() = default;
+    Position(std::string fen);
     void setSquare(SquareIndex square, Color color, Piece piece);
     std::string stringify_board();
     void print_board();
@@ -68,7 +76,7 @@ inline bool Position::makeMove(Move m) {
     }
     plies += 1;
     opponent = to_move;
-    to_move = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
+    to_move = static_cast<Color>(to_move ^ 1);
 
     return true;
 }
@@ -146,11 +154,11 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         Bitboard pushes = pawnPushes[to_move][from] & neitherOursAndTheirs;
         if (pushes) {
             SquareIndex to = get_ls1b_index(pushes);
-            moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+            moves.push_back(encodeMove(from, to, MoveFlags::QUIET));
 
             Bitboard doublePush = pawnPushes[to_move][to];
             if (doublePush & neitherOursAndTheirs & doublePushRank) {
-                moves.push_back(serialize_move(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
+                moves.push_back(encodeMove(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
             }
         }
         pawns_not_promoting &= unmaskedSquare[from];
@@ -203,9 +211,9 @@ inline void Position::generatePawnMoves(MoveList &moves) {
             SquareIndex to = get_ls1b_index(pushes);
             Bitboard doublePush = pawnPushes[to_move][to];
             if (doublePush & empty & doublePushRank) {
-                moves.push_back(serialize_move(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
+                moves.push_back(encodeMove(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
             }
-            moves.push_back(serialize_move(from, to, MoveFlags::QUIET));
+            moves.push_back(encodeMove(from, to, MoveFlags::QUIET));
             pushes &= unmaskedSquare[to];
         }
         pawns_not_promoting &= unmaskedSquare[from];

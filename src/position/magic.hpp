@@ -1,9 +1,40 @@
 #pragma once
 #include "bitboard.hpp"
-#include "core.hpp"
+#include "chess.hpp"
 #define MAGICS_ARRAY_SIZE 200000
 
-typedef std::uint64_t Bitboard;
+enum Direction : Offset {
+    SOUTH = -8,
+    NORTH = 8,
+    WEST = -1,
+    EAST = 1,
+    SOUTH_WEST = SOUTH + WEST,
+    SOUTH_EAST = SOUTH + EAST,
+    NORTH_EAST = NORTH + EAST,
+    NORTH_WEST = NORTH + WEST,
+    SSW = SOUTH + SOUTH + WEST,
+    SSE = SOUTH + SOUTH + EAST,
+    EES = EAST + EAST + SOUTH,
+    EEN = EAST + EAST + NORTH,
+    NNE = NORTH + NORTH + EAST,
+    NNW = NORTH + NORTH + WEST,
+    WWN = WEST + WEST + NORTH,
+    WWS = WEST + WEST + SOUTH
+};
+
+enum RayDirection : Offset {
+    SOUTH_EAST_RAY,
+    SOUTH_RAY,
+    SOUTH_WEST_RAY,
+    WEST_RAY,
+    NORTH_WEST_RAY,
+    NORTH_RAY,
+    NORTH_EAST_RAY,
+    EAST_RAY,
+    POSITIVE = NORTH_WEST_RAY,
+    RAY_COUNT = EAST_RAY + 1
+};
+
 inline Bitboard getMagicIndex(Bitboard board, Bitboard magic, uint8_t shift) {
     return (board * magic) >> shift;
 }

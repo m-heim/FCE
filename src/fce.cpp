@@ -1,7 +1,6 @@
 #include <bitboard.hpp>
 #include <bits/getopt_core.h>
-#include <core.hpp>
-#include <fen.hpp>
+#include <chess.hpp>
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
@@ -40,7 +39,7 @@ int main(int argc, char **argv) {
     fen_file_stream.close();
 
     initGlobals();
-    Position position = parse_fen(fen);
+    Position position(fen);
 
     MoveList moves;
     position.generateMoves(moves);
@@ -68,8 +67,8 @@ int main(int argc, char **argv) {
             std::cin >> bufDepth;
             innerDepth = std::atoi(bufDepth.c_str());
             SearchInfo bestMove = search(&position, innerDepth);
-            std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
-                      << squareStringify(moveGetTo(bestMove.first)) << std::endl
+            std::cout << "BestMove" << squareIndexStringify(moveGetFrom(bestMove.first))
+                      << squareIndexStringify(moveGetTo(bestMove.first)) << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
         } else if (input == "m") {
             std::string buf;
@@ -87,7 +86,7 @@ int main(int argc, char **argv) {
                 std::cout << "Square" << std::endl;
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
-                SquareIndex index = getSquareFromString(squareBuf);
+                SquareIndex index = stringToSquareIndex(squareBuf);
                 printBitboard(bishopMagics.at(index).getAttack(emptyBitboard));
             }
         } else {

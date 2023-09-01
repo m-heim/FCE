@@ -1,5 +1,6 @@
 #include "magic.hpp"
-#include "core.hpp"
+#include "chess.hpp"
+#include "square.hpp"
 #include <iostream>
 
 // PRIMITIVES
@@ -160,8 +161,8 @@ void initRayAttacks() {
 }
 
 void printRays(SquareIndex index) {
-    for (uint8_t d = 0; d < RayDirection::RAY_COUNT; d++) {
-        printBitboard(rays[d][index]);
+    for (uint8_t direction = 0; direction < RayDirection::RAY_COUNT; direction++) {
+        printBitboard(rays[direction][index]);
     }
 }
 

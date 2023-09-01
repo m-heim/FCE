@@ -1,2 +1,2 @@
-add_library(position position.cpp fen.cpp core.cpp bitboard.cpp magic.cpp)
+add_library(position position.cpp square.cpp move.hpp chess.cpp bitboard.cpp magic.cpp)
 target_include_directories(position PUBLIC .)

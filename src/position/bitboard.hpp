@@ -1,9 +1,12 @@
 #pragma once
+#include "square.hpp"
 #include <array>
 #include <bit>
 #include <cstdint>
 #include <strings.h>
 #include <vector>
+
+#define BITBOARD_SUBSETS_N 4096
 
 typedef std::uint64_t Bitboard;
 
@@ -56,3 +59,31 @@ constexpr Bitboard center = (fileD | fileE) & (rank4 | rank5);
 constexpr Bitboard notCenter = ~center;
 constexpr Bitboard extendedCenter =
     (fileC | fileD | fileE | fileF) & (rank3 | rank4 | rank5 | rank6);
+
+// Get all possible combinations of bits in a mask
+std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask);
+
+void printBitboard(Bitboard board);
+
+inline Bitboard bitboardSetSquare(SquareIndex index) {
+    return 1ULL << index;
+}
+inline Bitboard bitboardUnsetSquare(Bitboard board, SquareIndex index) {
+    return board & ~bitboardSetSquare(index);
+}
+inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
+    *board &= ~bitboardSetSquare(index);
+}
+
+// cpu inline
+inline SquareIndex get_ls1b_index(Bitboard bitboard) {
+    return ffsll(bitboard) - 1;
+}
+inline SquareIndex get_ms1b_index(Bitboard bitboard) {
+    // NOTE returns 63 if no bit is set
+    return 63 - __builtin_clzll(bitboard);
+}
+
+inline uint8_t bitboardGetHW(Bitboard bitboard) {
+    return std::popcount<Bitboard>(bitboard);
+}

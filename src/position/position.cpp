@@ -1,7 +1,8 @@
 #include "position.hpp"
 #include "bitboard.hpp"
-#include "core.hpp"
+#include "chess.hpp"
 #include "magic.hpp"
+#include "move.hpp"
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -19,14 +20,88 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) 
     occupation[colorVal] |= mask;          // add piece to occupations
 }
 
-Position::Position() {
+Position::Position(std::string fen) {
     for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         board[square] = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
     }
     occupation[Color::WHITE] = 0ULL;
     occupation[Color::BLACK] = 0ULL;
     occupation[Color::NO_COLOR] = 0ULL;
-    memset(&bitboards, 0, sizeof(bitboards));
+
+    int start = 0;
+    size_t next = fen.find(' ', start);
+    std::string board = fen.substr(start, next - start);
+    start = next + 1;
+    next = fen.find(' ', start);
+    std::string side = fen.substr(start, next - start);
+    start = next + 1;
+    next = fen.find(' ', start);
+    std::string castling = fen.substr(start, next - start);
+    start = next + 1;
+    next = fen.find(' ', start);
+    std::string en_passant = fen.substr(start, next - start);
+    start = next + 1;
+    next = fen.find(' ', start);
+    std::string move_since_capture = fen.substr(start, next - start);
+    start = next + 1;
+    next = fen.find('\0', start);
+    std::string move = fen.substr(start, next - start);
+
+    uint8_t row = 7;
+    uint8_t col = 0;
+    for (char curr : board) {
+        if (curr == '/') {
+            row -= 1;
+            col = 0;
+        } else if (curr >= '0' && curr <= '9') {
+            int moveCols = curr - '0';
+            col += moveCols;
+        } else {
+            auto square = SquareInfo(curr);
+            setSquare((row << 3) + col, square.color, square.piece);
+            col++;
+        }
+    }
+    if (side == "w") {
+        to_move = Color::WHITE;
+        opponent = Color::BLACK;
+    } else if (side == "b") {
+        to_move = Color::BLACK;
+        opponent = Color::WHITE;
+    } else {
+        fce_error("Couldn\'t parse side to move in fen", 1);
+    }
+
+    for (auto curr : castling) {
+        if (curr == 'K') {
+            castle_rights[Color::WHITE][Castle::KINGSIDE] = true;
+        } else if (curr == 'k') {
+            castle_rights[Color::BLACK][Castle::KINGSIDE] = true;
+        } else if (curr == 'q') {
+            castle_rights[Color::BLACK][Castle::QUEENSIDE] = true;
+        } else if (curr == 'Q') {
+            castle_rights[Color::WHITE][Castle::QUEENSIDE] = true;
+        } else if (curr == '-') {
+            castle_rights[Color::BLACK][Castle::QUEENSIDE] = false;
+            castle_rights[Color::BLACK][Castle::KINGSIDE] = false;
+            castle_rights[Color::WHITE][Castle::QUEENSIDE] = false;
+            castle_rights[Color::WHITE][Castle::KINGSIDE] = false;
+            break;
+        } else {
+            fce_error("Could\'t read fen castling", 1);
+        }
+    }
+
+    if (en_passant[0] == '-') {
+        en_passant = SQUARE_NONE;
+    } else if (en_passant[0] >= 'a' && en_passant[0] <= 'h' && en_passant[1] >= '1' &&
+               en_passant[1] <= '8') {
+        en_passant = (SquareIndex)(en_passant[0] - 'a') + (en_passant[1] - '1') * 8;
+    } else {
+        fce_error("Couldn\'t read fen enpassant", 1);
+    }
+    plies_since_capture = std::stoi(move_since_capture);
+    plies = std::stoi(move);
 }
 
 std::string Position::stringify_board() {
@@ -37,7 +112,7 @@ std::string Position::stringify_board() {
         for (int8_t col = File::FILE_A; col <= File::FILE_TOP; col++) {
             ret.push_back(' ');
             SquareIndex square = row * Square::SQUARE_A2 + col;
-            char piece = piece_to_char(board[square].piece);
+            char piece = pieceToChar(board[square].piece);
             if (board[square].color == Color::WHITE && piece != ' ') {
                 piece += 'A' - 'a';
             }
@@ -234,16 +309,13 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << std::to_string(moves.count) << std::endl;
     Evaluation best = EvaluationLiterals::NEG_INF;
     Move bestMove = no_move;
+    Evaluation alpha;
+    Evaluation beta;
     for (uint8_t index = 0; index < moves.count; index++) {
-        Position p = *position;
+        Position newPos = *position;
         Move move = moves.get(index);
-        p.makeMove(move);
-        Evaluation current =
-            -alphaBeta(&p, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
-        if (current == -EvaluationLiterals::INVALID_MOVE) {
-            // if we are here, we are in check!
-            continue;
-        }
+        newPos.makeMove(move);
+        Evaluation current = -alphaBeta(&newPos, -beta, -alpha, depth);
         if (current > best) {
             best = current;
             bestMove = move;
