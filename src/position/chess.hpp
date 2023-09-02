@@ -36,19 +36,20 @@ enum Rank : uint8_t {
 
 enum EvaluationLiterals : Evaluation {
     NEG_INF = -100000000000,
-    // INVALID_MOVE = NEG_INF + 1,
+    MATE = NEG_INF + 1000,
+    EVEN = 0,
+    POS_INF = 100000000000,
+
     PAWN_VAL = 100,
     KNIGHT_VAL = 300,
     BISHOP_VAL = 315,
     ROOK_VAL = 450,
     QUEEN_VAL = 900,
     KING_VAL = 2000000,
-    POS_INF = 100000000000,
-    MATE = NEG_INF + 1000,
+
     MULTIPLE_PAWN_VAL = -50,
     MULTIPLE_BISHOP_VAL = 150,
     CENTER_PAWN_VAL = 100,
-    EVEN = 0
 };
 
 enum Color : std::uint8_t {
@@ -72,9 +73,8 @@ enum Piece : std::uint8_t {
 enum Castle : std::uint8_t {
     QUEENSIDE,
     KINGSIDE,
-    CASTLE_COUNT,
-    NO_CASTLE,
-    CASTLE_TOP = NO_CASTLE
+    CASTLE_TOP = KINGSIDE,
+    CASTLE_COUNT = KINGSIDE + 1
 };
 
 // INLINE FUNCTIONS FAST PROCESSING
