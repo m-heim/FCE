@@ -77,6 +77,7 @@ inline void bitboardUnsetSquare(Bitboard *board, SquareIndex index) {
     *board &= ~bitboardSetSquare(index);
 }
 inline SquareIndex get_ls1b_index(Bitboard bitboard) {
+    // NOTE integer wrap if empty
     return ffsll(bitboard) - 1;
 }
 inline SquareIndex get_ms1b_index(Bitboard bitboard) {
