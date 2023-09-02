@@ -22,7 +22,7 @@ class Position {
     std::array<SquareInfo, Square::SQUARE_COUNT> board;
     std::array<std::array<Bitboard, Piece::PIECE_TOP + 1>, Color::COLOR_TOP + 1> bitboards;
     std::array<Bitboard, Color::COLOR_TOP + 1> occupation;
-    std::array<std::array<bool, Castle::CASTLE_TOP + 1>, Color::BLACK + 1> castle_rights;
+    std::array<std::array<bool, Castle::CASTLE_COUNT>, Color::BLACK + 1> castle_rights;
     Color to_move;
     Color opponent;
     SquareIndex en_passant;
@@ -179,7 +179,8 @@ inline bool Position::inCheck(Color side) {
     Bitboard bishop = bishopMagics.at(square).getAttack(getBishopMask(square) & oursAndTheirs) &
                       (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::BISHOP]);
     Bitboard pawn = pawnAttacks[side][square] & opponentPieces[Piece::PAWN];
-    return (knight | rook | bishop | pawn) > emptyBitboard;
+    Bitboard king = kingAttacks[square] & opponentPieces[Piece::KING];
+    return (knight | rook | bishop | pawn | king) > emptyBitboard;
 }
 
 inline void Position::generatePawnMoves(MoveList &moves) {
