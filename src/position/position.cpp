@@ -3,6 +3,7 @@
 #include "chess.hpp"
 #include "magic.hpp"
 #include "move.hpp"
+#include "zobrist.hpp"
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -258,4 +259,26 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << "Eval" << std::to_string(alpha) << std::endl;
     position->print_board();
     return {bestMove, alpha};
+}
+
+Bitboard Position::hash() {
+    Bitboard result = emptyBitboard;
+    for (SquareIndex square = Square::SQUARE_A1; square < Square::SQUARE_H8; square++) {
+        SquareInfo squareInfo = board[square];
+        result ^= zobristKeys[squareInfo.color][squareInfo.piece][square];
+    }
+    result ^= zobristSide;
+    if (en_passant != Square::SQUARE_NONE) {
+        uint8_t file = en_passant % 8;
+        result ^= zobristEnPassant[file];
+    }
+    result ^= zobristCastle[Color::WHITE][Castle::KINGSIDE]
+                           [castle_rights[Color::WHITE][Castle::KINGSIDE]];
+    result ^= zobristCastle[Color::WHITE][Castle::QUEENSIDE]
+                           [castle_rights[Color::WHITE][Castle::QUEENSIDE]];
+    result ^= zobristCastle[Color::BLACK][Castle::KINGSIDE]
+                           [castle_rights[Color::BLACK][Castle::KINGSIDE]];
+    result ^= zobristCastle[Color::BLACK][Castle::QUEENSIDE]
+                           [castle_rights[Color::BLACK][Castle::QUEENSIDE]];
+    return result;
 }

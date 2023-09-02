@@ -71,10 +71,11 @@ enum Piece : std::uint8_t {
 };
 
 enum Castle : std::uint8_t {
-    QUEENSIDE,
     KINGSIDE,
-    CASTLE_TOP = KINGSIDE,
-    CASTLE_COUNT = KINGSIDE + 1
+    QUEENSIDE,
+    CASTLE_BOTTOM = KINGSIDE,
+    CASTLE_TOP = QUEENSIDE,
+    CASTLE_COUNT = CASTLE_TOP + 1
 };
 
 // INLINE FUNCTIONS FAST PROCESSING
