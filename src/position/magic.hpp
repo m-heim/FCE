@@ -1,7 +1,7 @@
 #pragma once
 #include "bitboard.hpp"
 #include "chess.hpp"
-#define MAGICS_ARRAY_SIZE 200000
+#define MAGICS_ARRAY_SIZE 156800
 
 enum Direction : Offset {
     SOUTH = -8,

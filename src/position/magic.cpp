@@ -130,11 +130,12 @@ void initMagics() {
         bishopMagics[index] = initMagicSquare(index, true, &slidingIndex);
         rookMagics[index] = initMagicSquare(index, false, &slidingIndex);
     }
+    std::cout << "Using" << std::to_string(slidingIndex) << "Bitboards for magics" << std::endl;
 }
 
 Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     Magic result{};
-    Bitboard mask = bishop ? getBishopMask(index) : getRookMask(index);
+    Bitboard mask = bishop ? bishopMasks[index] : rookMasks[index];
     uint8_t shift = bitboardGetHW(mask); // hw of mask
     uint8_t totalShift = Square::SQUARE_COUNT - shift;
     Bitboard magicNumber = bishop ? bishopMagicNumbers[index] : rookMagicNumbers[index];
@@ -146,6 +147,7 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     std::array<Bitboard, BITBOARD_SUBSETS_N> occupancies = getBitboardSubsets(mask);
     std::array<Bitboard, BITBOARD_SUBSETS_N> attacks{};
     uint16_t combinations = (1 << shift);
+    Bitboard highestHash = emptyBitboard;
     // calculate all the attacks for the occupancies
     for (int i = 0; i < combinations; i++) {
         attacks[i] = bishop ? getBishopAttacks(index, occupancies[i])
@@ -153,13 +155,14 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
     }
     for (int index = 0; index < combinations; index++) {
         Bitboard hash = result.getMagicIndex(occupancies[index]);
+        highestHash = std::max<Bitboard>(hash, highestHash);
         if (hash > combinations) {
             std::cerr << "Error in magic initialization" << std::endl;
             std::exit(1);
         }
         startOfBlock[hash] = attacks.at(index);
     }
-    *magicIndex += combinations;
+    *magicIndex += highestHash;
     return result;
 }
 

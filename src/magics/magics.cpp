@@ -39,10 +39,8 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
         }
         memset(&attackMap, 0, sizeof(attackMap));
         bool success = true;
-        // go through all possible occupancies
         for (int i = 0; (i < numOccupancies) && success; i++) {
-            Bitboard hash = getMagicIndex(occupancies[i], magic, Square::SQUARE_COUNT - shift);
-            // if no
+            Bitboard hash = getMagicIndex(occupancies[i], magic, Square::SQUARE_COUNT - shift + 1);
             if (attackMap[hash] == 0) {
                 attackMap[hash] = attacks[i];
             } else if (attackMap[hash] != attacks[i]) {
@@ -50,13 +48,6 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
             }
         }
         if (success) {
-            // uint8_t width = std::log2(hashtop) + 1;
-            //  printSquare(square);
-            //  std::cout << "top hash" << std::to_string(hashtop) << "at" <<
-            //  std::to_string(attempt) //<< "with width" <<
-            //  std::to_string(width) << std::endl; std::cout <<
-            //  std::to_string(width) << std::endl; std::cout
-            //  << std::hex << magic << std::endl;
             return magic;
         }
     }
