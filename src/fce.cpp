@@ -6,6 +6,7 @@
 #include <iostream>
 #include <position.hpp>
 #include <vector>
+#include <zobrist.hpp>
 
 int main(int argc, char **argv) {
     std::cout << "Fce is starting now ..." << std::endl;
@@ -40,6 +41,7 @@ int main(int argc, char **argv) {
     fen_file_stream.close();
 
     initGlobals();
+    initZobrist(123);
     Position position = parseFen(fen);
 
     MoveList moves;
@@ -78,6 +80,11 @@ int main(int argc, char **argv) {
             std::cin >> buf;
             if (buf == "n") {
                 printKnightAttacks();
+            } else if (buf == "m") {
+                MoveList moves_debug;
+                position.generateMoves(moves_debug);
+                std::cout << moves_debug.stringify() << std::endl;
+
             } else if (buf == "b") {
                 std::string squareBuf;
                 std::cout << "Square" << std::endl;
