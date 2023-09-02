@@ -3,6 +3,7 @@
 #include "chess.hpp"
 #include "magic.hpp"
 #include "move.hpp"
+#include "transposition.hpp"
 #include "zobrist.hpp"
 #include <chrono>
 #include <cstring>
@@ -149,6 +150,11 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     // whole subtree
     // Add algorithm for repetition
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
+    Bitboard key = position->hash;
+    PositionInfo info = getPositionInfo(key);
+    if (info.hash == key && info.valid && (info.depth > 4)) {
+        return info.eval;
+    }
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
         // return position->evaluate();
@@ -261,7 +267,7 @@ SearchInfo search(Position *position, uint16_t depth) {
     return {bestMove, alpha};
 }
 
-Bitboard Position::hash() {
+Bitboard Position::computeHash() {
     Bitboard result = emptyBitboard;
     for (SquareIndex square = Square::SQUARE_A1; square < Square::SQUARE_H8; square++) {
         SquareInfo squareInfo = board[square];
