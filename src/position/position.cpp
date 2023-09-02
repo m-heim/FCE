@@ -149,8 +149,8 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     // Add algorithm for repetition
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     if (depthleft == 0) {
-        // return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
-        return position->evaluate();
+        return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
+        // return position->evaluate();
     }
     MoveList moves{};
     position->generateMoves(moves);
@@ -178,10 +178,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         }
     }
     if (legalMoves == 0) {
-        std::cout << "MATE" << std::endl;
-        std::cout << "MOVES:" << moves.stringify() << std::endl;
-        position->print_board();
-        return EvaluationLiterals::MATE; // checkmate
+        return EvaluationLiterals::MATE;
     }
     return alpha;
 }
@@ -203,11 +200,9 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
     Evaluation score = EvaluationLiterals::EVEN;
     position->generateMoves(moves);
     uint8_t legalMoves = 0;
-    uint8_t captures = 0;
     for (uint8_t index = 0; index < moves.count; index++) {
         Move move = moves.get(index);
-        if (moveGetFlags(move) == MoveFlags::CAPTURE) {
-            captures++;
+        if (inCheck || moveGetFlags(move) == MoveFlags::CAPTURE) {
             Position capturePos = *position;
             capturePos.makeMove(move);
             if (capturePos.inCheck(capturePos.opponent)) {
@@ -223,8 +218,7 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
             }
         }
     }
-    // TODO what if there are no captures?
-    if (inCheck && legalMoves == 0 && captures > 0) {
+    if (inCheck && legalMoves == 0) {
         return EvaluationLiterals::MATE;
     }
     return alpha;
@@ -234,8 +228,6 @@ SearchInfo search(Position *position, uint16_t depth) {
     auto start = std::chrono::high_resolution_clock::now();
     MoveList moves;
     position->generateMoves(moves);
-    std::cout << std::to_string(moves.count) << std::endl;
-    Evaluation best = EvaluationLiterals::NEG_INF;
     Move bestMove = no_move;
     Evaluation alpha = EvaluationLiterals::NEG_INF;
     Evaluation beta = EvaluationLiterals::POS_INF;
@@ -244,8 +236,8 @@ SearchInfo search(Position *position, uint16_t depth) {
         Move move = moves.get(index);
         newPos.makeMove(move);
         Evaluation current = -alphaBeta(&newPos, -beta, -alpha, depth);
-        if (current > best) {
-            best = current;
+        if (current > alpha) {
+            alpha = current;
             bestMove = move;
         }
     }
@@ -263,5 +255,7 @@ SearchInfo search(Position *position, uint16_t depth) {
     std::cout << "Total of:\n"
               << std::to_string(positions) << "\nat:\n"
               << std::to_string(rate) << "MP/s" << std::endl;
-    return {bestMove, best};
+    std::cout << "Eval" << std::to_string(alpha) << std::endl;
+    position->print_board();
+    return {bestMove, alpha};
 }
