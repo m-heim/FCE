@@ -79,5 +79,6 @@ Position parseFen(const std::string &fen) {
     }
     position.plies_since_capture = std::stoi(move_since_capture);
     position.plies = std::stoi(move);
+    position.hash = position.computeHash();
     return position;
 }
