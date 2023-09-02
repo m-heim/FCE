@@ -31,3 +31,14 @@ void printBitboard(Bitboard board) {
         std::cout << "\n";
     }
 }
+
+// RAND
+std::minstd_rand randomNumberEngine(987);
+std::uniform_int_distribution<Bitboard> randomBitboardDistribution(emptyBitboard, fullBitboard);
+
+void reseedBitboardEngine(uint16_t seed) {
+    randomNumberEngine.seed(seed);
+}
+Bitboard getRandomBitboard() {
+    return randomBitboardDistribution(randomNumberEngine);
+}

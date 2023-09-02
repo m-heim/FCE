@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
+#include <random>
 #include <strings.h>
 #include <vector>
 
@@ -87,3 +88,5 @@ inline SquareIndex get_ms1b_index(Bitboard bitboard) {
 inline uint8_t bitboardGetHW(Bitboard bitboard) {
     return std::popcount<Bitboard>(bitboard);
 }
+void reseedBitboardEngine(uint16_t seed);
+Bitboard getRandomBitboard();
