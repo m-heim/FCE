@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     char option = 'h';
     uint8_t depth = 0;
     std::string fen_file;
-    while ((option = getopt(argc, argv, "d:f:h")) != -1) {
+    while ((option = (char)getopt(argc, argv, "d:f:h")) != -1) {
         switch (option) {
         case 'd':
             depth = std::atoi(optarg);
@@ -49,10 +49,6 @@ int main(int argc, char **argv) {
 
     std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-    // SearchInfo bestMove = search(&position, depth);
-    // std::cout << "BestMove" << squareStringify(moveGetFrom(bestMove.first))
-    //<< squareStringify(moveGetTo(bestMove.first)) << std::endl
-    //<< "Eval" << std::to_string(bestMove.second) << std::endl;
     Evaluation eval =
         alphaBeta(&position, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
     std::cout << std::to_string(eval) << std::endl;
