@@ -65,7 +65,9 @@ class MoveList {
         for (uint8_t i = 0; i < count; i++) {
             std::string fromSquare = squareIndexStringify(moveGetFrom(moves[i]));
             std::string toSquare = squareIndexStringify(moveGetTo(moves[i]));
-            result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + "\n");
+            MoveFlags flag = moveGetFlags(moves[i]);
+            result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + " " +
+                          std::to_string(flag) + "\n");
         }
         return result;
     }
