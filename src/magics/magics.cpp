@@ -8,18 +8,6 @@
 constexpr uint64_t MIN_BITS_MAGIC = 6;
 constexpr uint64_t ATTEMPTS_FIND_MAGIC = 10000000000ULL;
 
-std::random_device randDev;
-std::default_random_engine randEngine(randDev());
-std::uniform_int_distribution<Bitboard> numbers(emptyBitboard, fullBitboard);
-
-// CODE FROM Tord Romstad
-Bitboard randomBitboard() {
-    return numbers(randEngine);
-}
-Bitboard randomBitboardFewbits() {
-    return randomBitboard() & randomBitboard() & randomBitboard();
-}
-//
 Bitboard findMagics(SquareIndex square, bool bishop) {
     Bitboard mask = bishop ? getBishopMask(square) : getRookMask(square);
     uint8_t shift = bitboardGetHW(mask);
@@ -33,14 +21,14 @@ Bitboard findMagics(SquareIndex square, bool bishop) {
     // the map that will contain the attacks after hashing the bitboard
     std::array<Bitboard, BITBOARD_SUBSETS_N> attackMap{};
     for (uint64_t attempt = 0; attempt < ATTEMPTS_FIND_MAGIC; attempt++) {
-        Bitboard magic = randomBitboard() & randomBitboard();
+        Bitboard magic = getRandomBitboard() & getRandomBitboard(); // Tord Romstad
         if (bitboardGetHW((mask * magic) & rank8) < MIN_BITS_MAGIC) {
             continue;
         }
         memset(&attackMap, 0, sizeof(attackMap));
         bool success = true;
         for (int i = 0; (i < numOccupancies) && success; i++) {
-            Bitboard hash = getMagicIndex(occupancies[i], magic, Square::SQUARE_COUNT - shift + 1);
+            Bitboard hash = getMagicIndex(occupancies[i], magic, Square::SQUARE_COUNT - shift);
             if (attackMap[hash] == 0) {
                 attackMap[hash] = attacks[i];
             } else if (attackMap[hash] != attacks[i]) {
@@ -71,6 +59,7 @@ int main(int argc, char **argv) {
         std::exit(2);
     }
     initGlobals();
+    reseedBitboardEngine(std::atoi(argv[2]));
     for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         std::cout << findMagics(square, bishop) << ",";
         std::flush(std::cout);
