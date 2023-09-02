@@ -76,7 +76,7 @@ inline void Position::makeMove(Move m) {
         }
     } else if (movingPiece.piece == Piece::ROOK) {
         SquareIndex queenside = Square::SQUARE_A1 + ((bool)to_move * (int)Square::SQUARE_A8);
-        SquareIndex kingside = Square::SQUARE_A1 + ((bool)to_move * (int)Square::SQUARE_A8);
+        SquareIndex kingside = Square::SQUARE_H1 + ((bool)to_move * (int)Square::SQUARE_A8);
         if (from == queenside && castle_rights[to_move][Castle::QUEENSIDE]) {
             castle_rights[to_move][Castle::QUEENSIDE] = false;
             hash ^= zobristCastle[to_move][Castle::QUEENSIDE][true];
@@ -86,7 +86,7 @@ inline void Position::makeMove(Move m) {
         }
     } else if (leavingPiece.piece == Piece::ROOK) {
         SquareIndex queenside = Square::SQUARE_A1 + ((bool)opponent * (int)Square::SQUARE_A8);
-        SquareIndex kingside = Square::SQUARE_A1 + ((bool)opponent * (int)Square::SQUARE_A8);
+        SquareIndex kingside = Square::SQUARE_H1 + ((bool)opponent * (int)Square::SQUARE_A8);
         if (to == queenside && castle_rights[opponent][Castle::QUEENSIDE]) {
             castle_rights[opponent][Castle::QUEENSIDE] = false;
             hash ^= zobristCastle[opponent][Castle::QUEENSIDE][true];
@@ -113,8 +113,13 @@ inline void Position::makeMove(Move m) {
         setSquare(from + 1, movingPiece.color, Piece::ROOK);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
         setSquare(to + 1, Color::NO_COLOR, Piece::NO_PIECE);
+        hash ^= zobristKeys[to_move][movingPiece.piece][from];
+        hash ^= zobristKeys[to_move][Piece::ROOK][from + 3];
+        hash ^= zobristKeys[to_move][Piece::ROOK][to - 1];
+        hash ^= zobristKeys[to_move][movingPiece.piece][to];
     } else if (flags == MoveFlags::EN_PASSANT) {
     }
+    hash ^= zobristSide;
     plies += 1;
     opponent = to_move;
     to_move = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
@@ -232,9 +237,10 @@ inline void Position::generatePieceMoves(MoveList &moves) {
 }
 
 inline bool Position::inCheck(Color side) {
+    Color opponentSide = (side == Color::BLACK ? Color::WHITE : Color::BLACK);
     SquareIndex square = get_ls1b_index(bitboards[side][Piece::KING]);
     Bitboard oursAndTheirs = occupation[Color::WHITE] | occupation[Color::BLACK];
-    auto opponentPieces = bitboards[opponent];
+    auto opponentPieces = bitboards[opponentSide];
     Bitboard knight = knightAttacks[square] & opponentPieces[Piece::KNIGHT];
     Bitboard rook = rookMagics.at(square).getAttack(oursAndTheirs) &
                     (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::ROOK]);
