@@ -29,10 +29,8 @@ class PositionInfo {
 
 extern std::array<PositionInfo, TRANSPOSITION_TABLE_N> transpositionTable;
 
-inline PositionInfo getPositionInfo(Bitboard hash) {
-    return transpositionTable[hash % TRANSPOSITION_TABLE_N];
-}
+void initTranspositionTable();
 
-inline void insertPositionInfo(PositionInfo position) {
-    transpositionTable[position.hash % TRANSPOSITION_TABLE_N] = position;
-}
+PositionInfo getPositionInfo(Bitboard hash);
+
+void insertPositionInfo(PositionInfo position);
