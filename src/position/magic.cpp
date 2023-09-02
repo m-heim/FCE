@@ -162,7 +162,8 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
         }
         startOfBlock[hash] = attacks.at(index);
     }
-    *magicIndex += highestHash;
+    // len of required array = highest hash + 1 (e.g. 1 occupancy -> index 0: length = 1)
+    *magicIndex += highestHash + 1;
     return result;
 }
 
