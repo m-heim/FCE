@@ -151,9 +151,10 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     // Add algorithm for repetition
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     Bitboard key = position->hash;
-    PositionInfo info = getPositionInfo(key);
-    if (info.hash == key && info.valid && (info.depth > 4)) {
-        return info.eval;
+    PositionInfo infoLookup = getPositionInfo(key);
+    if (infoLookup.hash == key && infoLookup.valid &&
+        (infoLookup.depth >= (depthleft + QUIESCE_DEPTH_N - 4))) {
+        return infoLookup.eval;
     }
     if (depthleft == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
@@ -177,6 +178,8 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         // opponent has a better move in the search tree already so return their
         // limit as ours
         if (score >= beta) {
+            PositionInfo info = PositionInfo(position->hash, depthleft + QUIESCE_DEPTH_N, beta, 0);
+            insertPositionInfo(info);
             return beta; //  fail hard beta-cutoff
         }
         // if the move found is better than the best score we can achieve update
@@ -187,6 +190,8 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     if (legalMoves == 0) {
         return EvaluationLiterals::MATE;
     }
+    PositionInfo info = PositionInfo(position->hash, depthleft + QUIESCE_DEPTH_N, alpha, 1);
+    insertPositionInfo(info);
     return alpha;
 }
 
@@ -269,13 +274,17 @@ SearchInfo search(Position *position, uint16_t depth) {
 
 Bitboard Position::computeHash() {
     Bitboard result = emptyBitboard;
-    for (SquareIndex square = Square::SQUARE_A1; square < Square::SQUARE_H8; square++) {
+    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
         SquareInfo squareInfo = board[square];
-        result ^= zobristKeys[squareInfo.color][squareInfo.piece][square];
+        if (squareInfo.piece != Piece::NO_PIECE) {
+            result ^= zobristKeys[squareInfo.color][squareInfo.piece][square];
+        }
     }
-    result ^= zobristSide;
+    if (to_move == Color::BLACK) {
+        result ^= zobristSide;
+    }
     if (en_passant != Square::SQUARE_NONE) {
-        uint8_t file = en_passant % 8;
+        uint8_t file = en_passant % Square::SQUARE_A2;
         result ^= zobristEnPassant[file];
     }
     result ^= zobristCastle[Color::WHITE][Castle::KINGSIDE]
