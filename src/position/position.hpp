@@ -43,6 +43,7 @@ class Position {
     void generatePieceMoves(MoveList &moves);
     void generateMoves(MoveList &moves);
     bool inCheck(Color side);
+    Bitboard hash();
 };
 
 Evaluation negaMax(Position position, uint16_t depth);
@@ -59,9 +60,26 @@ inline Evaluation Position::evaluatePosition(void) {
 inline void Position::makeMove(Move m) {
     SquareIndex from = moveGetFrom(m);
     SquareIndex to = moveGetTo(m);
-    // if we take the opponents king
     uint8_t flags = moveGetFlags(m);
     SquareInfo movingPiece = board[from];
+    if (movingPiece.piece == Piece::KING) {
+        castle_rights[to_move][Castle::QUEENSIDE] = false;
+        castle_rights[to_move][Castle::KINGSIDE] = false;
+    } else if (movingPiece.piece == Piece::ROOK) {
+        if (to_move == Color::WHITE) {
+            if (from == Square::SQUARE_A1) {
+                castle_rights[Color::WHITE][Castle::QUEENSIDE] = false;
+            } else if (from == Square::SQUARE_H1) {
+                castle_rights[Color::WHITE][Castle::KINGSIDE] = false;
+            }
+        } else if (to_move == Color::BLACK) {
+            if (from == Square::SQUARE_A8) {
+                castle_rights[Color::BLACK][Castle::QUEENSIDE] = false;
+            } else if (from == Square::SQUARE_H8) {
+                castle_rights[Color::BLACK][Castle::KINGSIDE] = false;
+            }
+        }
+    }
     if (flags == MoveFlags::QUIET) {
         setSquare(to, movingPiece.color, movingPiece.piece);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
@@ -69,6 +87,11 @@ inline void Position::makeMove(Move m) {
     } else if (flags == MoveFlags::CAPTURE) {
         setSquare(to, movingPiece.color, movingPiece.piece);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+    } else if (flags == MoveFlags::CASTLE_KINGSIDE) {
+        setSquare(to, movingPiece.color, Piece::KING);
+        setSquare(from + 1, movingPiece.color, Piece::ROOK);
+        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+        setSquare(to + 1, Color::NO_COLOR, Piece::NO_PIECE);
     }
     plies += 1;
     opponent = to_move;
@@ -128,6 +151,14 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
         moves.addMoves(from, non_attacks, MoveFlags::QUIET);
+        if (castle_rights[to_move][Castle::KINGSIDE]) {
+            Offset moveDir = Direction::EAST;
+            Offset moveDirTarget = moveDir + Direction::EAST;
+            if (((king << moveDir) && neitherOursAndTheirs) &&
+                ((king << moveDirTarget) && neitherOursAndTheirs)) {
+                moves.push_back(encodeMove(from, from + 2, MoveFlags::CASTLE_KINGSIDE));
+            }
+        }
     }
     Bitboard pawns = bitboards[to_move][Piece::PAWN];
     Bitboard pawns_promoting;
