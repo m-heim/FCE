@@ -4,6 +4,7 @@
 #include "magic.hpp"
 #include "move.hpp"
 #include "square.hpp"
+#include "zobrist.hpp"
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -28,6 +29,7 @@ class Position {
     SquareIndex en_passant;
     uint16_t plies;
     uint16_t plies_since_capture;
+    Bitboard hash;
     Position();
     void setSquare(SquareIndex square, Color color, Piece piece);
     std::string stringify_board();
@@ -43,7 +45,7 @@ class Position {
     void generatePieceMoves(MoveList &moves);
     void generateMoves(MoveList &moves);
     bool inCheck(Color side);
-    Bitboard hash();
+    Bitboard computeHash();
 };
 
 Evaluation negaMax(Position position, uint16_t depth);
@@ -62,36 +64,56 @@ inline void Position::makeMove(Move m) {
     SquareIndex to = moveGetTo(m);
     uint8_t flags = moveGetFlags(m);
     SquareInfo movingPiece = board[from];
+    SquareInfo leavingPiece = board[to];
+    // while castling is allowed and the king doesnt move, keep this
     if (movingPiece.piece == Piece::KING) {
-        castle_rights[to_move][Castle::QUEENSIDE] = false;
-        castle_rights[to_move][Castle::KINGSIDE] = false;
+        if (castle_rights[to_move][Castle::QUEENSIDE]) {
+            castle_rights[to_move][Castle::QUEENSIDE] = false;
+            hash ^= zobristCastle[to_move][Castle::QUEENSIDE][true];
+        } else if (castle_rights[to_move][Castle::KINGSIDE]) {
+            castle_rights[to_move][Castle::KINGSIDE] = false;
+            hash ^= zobristCastle[to_move][Castle::KINGSIDE][true];
+        }
     } else if (movingPiece.piece == Piece::ROOK) {
-        if (to_move == Color::WHITE) {
-            if (from == Square::SQUARE_A1) {
-                castle_rights[Color::WHITE][Castle::QUEENSIDE] = false;
-            } else if (from == Square::SQUARE_H1) {
-                castle_rights[Color::WHITE][Castle::KINGSIDE] = false;
-            }
-        } else if (to_move == Color::BLACK) {
-            if (from == Square::SQUARE_A8) {
-                castle_rights[Color::BLACK][Castle::QUEENSIDE] = false;
-            } else if (from == Square::SQUARE_H8) {
-                castle_rights[Color::BLACK][Castle::KINGSIDE] = false;
-            }
+        SquareIndex queenside = Square::SQUARE_A1 + ((bool)to_move * (int)Square::SQUARE_A8);
+        SquareIndex kingside = Square::SQUARE_A1 + ((bool)to_move * (int)Square::SQUARE_A8);
+        if (from == queenside && castle_rights[to_move][Castle::QUEENSIDE]) {
+            castle_rights[to_move][Castle::QUEENSIDE] = false;
+            hash ^= zobristCastle[to_move][Castle::QUEENSIDE][true];
+        } else if (from == kingside && castle_rights[to_move][Castle::KINGSIDE]) {
+            castle_rights[to_move][Castle::KINGSIDE] = false;
+            hash ^= zobristCastle[to_move][Castle::KINGSIDE][true];
+        }
+    } else if (leavingPiece.piece == Piece::ROOK) {
+        SquareIndex queenside = Square::SQUARE_A1 + ((bool)opponent * (int)Square::SQUARE_A8);
+        SquareIndex kingside = Square::SQUARE_A1 + ((bool)opponent * (int)Square::SQUARE_A8);
+        if (to == queenside && castle_rights[opponent][Castle::QUEENSIDE]) {
+            castle_rights[opponent][Castle::QUEENSIDE] = false;
+            hash ^= zobristCastle[opponent][Castle::QUEENSIDE][true];
+        } else if (to == kingside && castle_rights[opponent][Castle::KINGSIDE]) {
+            castle_rights[opponent][Castle::KINGSIDE] = false;
+            hash ^= zobristCastle[opponent][Castle::KINGSIDE][true];
         }
     }
     if (flags == MoveFlags::QUIET) {
         setSquare(to, movingPiece.color, movingPiece.piece);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+        hash ^= zobristKeys[to_move][movingPiece.piece][from];
+        hash ^= zobristKeys[to_move][movingPiece.piece][to];
         plies_since_capture += 1;
     } else if (flags == MoveFlags::CAPTURE) {
+
         setSquare(to, movingPiece.color, movingPiece.piece);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+        hash ^= zobristKeys[to_move][movingPiece.piece][from];
+        hash ^= zobristKeys[to_move][movingPiece.piece][to];
+        hash ^= zobristKeys[opponent][leavingPiece.piece][to];
     } else if (flags == MoveFlags::CASTLE_KINGSIDE) {
         setSquare(to, movingPiece.color, Piece::KING);
         setSquare(from + 1, movingPiece.color, Piece::ROOK);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
         setSquare(to + 1, Color::NO_COLOR, Piece::NO_PIECE);
+    } else if (flags == MoveFlags::EN_PASSANT) {
     }
     plies += 1;
     opponent = to_move;
@@ -154,9 +176,19 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         if (castle_rights[to_move][Castle::KINGSIDE]) {
             Offset moveDir = Direction::EAST;
             Offset moveDirTarget = moveDir + Direction::EAST;
-            if (((king << moveDir) && neitherOursAndTheirs) &&
-                ((king << moveDirTarget) && neitherOursAndTheirs)) {
-                moves.push_back(encodeMove(from, from + 2, MoveFlags::CASTLE_KINGSIDE));
+            if (((king << moveDir) & neitherOursAndTheirs) &&
+                ((king << moveDirTarget) & neitherOursAndTheirs) && !inCheck(to_move)) {
+                Position intermediate = *this;
+                intermediate.setSquare(from + moveDir, to_move, Piece::KING);
+                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+                Position intermediate2 = *this;
+                intermediate.setSquare(from + moveDirTarget, to_move, Piece::KING);
+                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+                if (!intermediate.inCheck(intermediate.to_move) &&
+                    !intermediate2.inCheck(intermediate2.to_move)) {
+                    moves.push_back(
+                        encodeMove(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
+                }
             }
         }
     }
@@ -200,14 +232,13 @@ inline void Position::generatePieceMoves(MoveList &moves) {
 }
 
 inline bool Position::inCheck(Color side) {
-    Color opponentSide = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;
     SquareIndex square = get_ls1b_index(bitboards[side][Piece::KING]);
     Bitboard oursAndTheirs = occupation[Color::WHITE] | occupation[Color::BLACK];
-    auto opponentPieces = bitboards[opponentSide];
+    auto opponentPieces = bitboards[opponent];
     Bitboard knight = knightAttacks[square] & opponentPieces[Piece::KNIGHT];
-    Bitboard rook = rookMagics.at(square).getAttack(getRookMask(square) & oursAndTheirs) &
+    Bitboard rook = rookMagics.at(square).getAttack(oursAndTheirs) &
                     (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::ROOK]);
-    Bitboard bishop = bishopMagics.at(square).getAttack(getBishopMask(square) & oursAndTheirs) &
+    Bitboard bishop = bishopMagics.at(square).getAttack(oursAndTheirs) &
                       (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::BISHOP]);
     Bitboard pawn = pawnAttacks[side][square] & opponentPieces[Piece::PAWN];
     Bitboard king = kingAttacks[square] & opponentPieces[Piece::KING];
