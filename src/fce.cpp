@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <position.hpp>
+#include <transposition.hpp>
 #include <vector>
 #include <zobrist.hpp>
 
@@ -41,7 +42,8 @@ int main(int argc, char **argv) {
     fen_file_stream.close();
 
     initGlobals();
-    initZobrist(123);
+    initZobrist(1234);
+    initTranspositionTable();
     Position position = parseFen(fen);
 
     MoveList moves;
