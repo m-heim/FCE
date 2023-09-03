@@ -15,7 +15,7 @@ typedef std::pair<Move, Evaluation> SearchInfo;
 
 // constants
 constexpr uint64_t SEARCH_DEPTH_N = 1000;
-constexpr uint64_t QUIESCE_DEPTH_N = 10;
+constexpr uint64_t QUIESCE_DEPTH_N = 30;
 
 class Position {
   public:
@@ -121,6 +121,7 @@ inline void Position::makeMove(Move m) {
         hash ^= zobristKeys[to_move][movingPiece.piece][from];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
         hash ^= zobristKeys[opponent][leavingPiece.piece][to];
+        plies_since_capture = 0;
     } else if (flags == MoveFlags::CASTLE_KINGSIDE) {
         setSquare(to, movingPiece.color, Piece::KING);
         setSquare(from + 1, movingPiece.color, Piece::ROOK);
@@ -130,6 +131,7 @@ inline void Position::makeMove(Move m) {
         hash ^= zobristKeys[to_move][Piece::ROOK][from + 3];
         hash ^= zobristKeys[to_move][Piece::ROOK][to - 1];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
+        plies_since_capture += 1;
     } else if (flags == MoveFlags::EN_PASSANT) {
         Offset epOpponent = from;
         if (to > from) {
@@ -152,6 +154,7 @@ inline void Position::makeMove(Move m) {
         hash ^= zobristKeys[to_move][movingPiece.piece][from];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
         hash ^= zobristKeys[opponent][leavingPiece.piece][epOpponent];
+        plies_since_capture = 0;
     }
     hash ^= zobristSide;
     plies += 1;
