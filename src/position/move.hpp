@@ -15,13 +15,14 @@ constexpr Move no_move = 65;
 enum MoveFlags : std::uint8_t {
     QUIET,
     CAPTURE,
+    DOUBLE_PUSH,
     EN_PASSANT,
     CASTLE_QUEENSIDE,
     CASTLE_KINGSIDE,
-    PROMOTE_QUEEN,
-    PROMOTE_ROOK,
-    PROMOTE_BISHOP,
-    PROMOTE_KNIGHT,
+    PROMOTE_QUEEN = 8,
+    PROMOTE_ROOK = 9,
+    PROMOTE_BISHOP = 10,
+    PROMOTE_KNIGHT = 11,
     MASK = 0x0F
 };
 

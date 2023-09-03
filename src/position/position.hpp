@@ -65,6 +65,11 @@ inline void Position::makeMove(Move m) {
     uint8_t flags = moveGetFlags(m);
     SquareInfo movingPiece = board[from];
     SquareInfo leavingPiece = board[to];
+    if (en_passant != Square::SQUARE_NONE) {
+        uint8_t file = en_passant % 8;
+        hash ^= zobristEnPassant[file];
+        en_passant = Square::SQUARE_NONE;
+    }
     // while castling is allowed and the king doesnt move, keep this
     if (movingPiece.piece == Piece::KING) {
         if (castle_rights[to_move][Castle::QUEENSIDE]) {
@@ -101,6 +106,14 @@ inline void Position::makeMove(Move m) {
         hash ^= zobristKeys[to_move][movingPiece.piece][from];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
         plies_since_capture += 1;
+    } else if (flags == MoveFlags::DOUBLE_PUSH) {
+        setSquare(to, movingPiece.color, movingPiece.piece);
+        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+        hash ^= zobristKeys[to_move][movingPiece.piece][from];
+        hash ^= zobristKeys[to_move][movingPiece.piece][to];
+        en_passant = (from + to) / 2;
+        hash ^= zobristEnPassant[en_passant % 8];
+        plies_since_capture += 1;
     } else if (flags == MoveFlags::CAPTURE) {
 
         setSquare(to, movingPiece.color, movingPiece.piece);
@@ -118,6 +131,27 @@ inline void Position::makeMove(Move m) {
         hash ^= zobristKeys[to_move][Piece::ROOK][to - 1];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
     } else if (flags == MoveFlags::EN_PASSANT) {
+        Offset epOpponent = from;
+        if (to > from) {
+            // WHITE
+            if (to == (from + Direction::NORTH_WEST)) {
+                epOpponent -= 1;
+            } else {
+                epOpponent += 1;
+            }
+        } else {
+            if (to == (from + Direction::SOUTH_WEST)) {
+                epOpponent -= 1;
+            } else {
+                epOpponent += 1;
+            }
+        }
+        setSquare(to, movingPiece.color, movingPiece.piece);
+        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+        setSquare(epOpponent, Color::NO_COLOR, Piece::NO_PIECE);
+        hash ^= zobristKeys[to_move][movingPiece.piece][from];
+        hash ^= zobristKeys[to_move][movingPiece.piece][to];
+        hash ^= zobristKeys[opponent][leavingPiece.piece][epOpponent];
     }
     hash ^= zobristSide;
     plies += 1;
@@ -212,8 +246,15 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     }
     while (pawns_not_promoting) {
         SquareIndex from = get_ls1b_index(pawns_not_promoting);
-        Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        Bitboard theoreticalAttackingMoves = pawnAttacks[to_move][from];
+        Bitboard realAttackingMoves = theirs & theoreticalAttackingMoves;
+        if (en_passant != Square::SQUARE_NONE) {
+            Bitboard epBitboard = maskedSquare[en_passant];
+            if (theoreticalAttackingMoves & epBitboard) {
+                moves.push_back(encodeMove(from, en_passant, MoveFlags::EN_PASSANT));
+            }
+        }
+        moves.addMoves(from, realAttackingMoves, MoveFlags::CAPTURE);
         Bitboard pushes = pawnPushes[to_move][from] & neitherOursAndTheirs;
         if (pushes) {
             SquareIndex to = get_ls1b_index(pushes);
@@ -221,7 +262,8 @@ inline void Position::generatePieceMoves(MoveList &moves) {
 
             Bitboard doublePush = pawnPushes[to_move][to];
             if (doublePush & neitherOursAndTheirs & doublePushRank) {
-                moves.push_back(encodeMove(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
+                moves.push_back(
+                    encodeMove(from, get_ls1b_index(doublePush), MoveFlags::DOUBLE_PUSH));
             }
         }
         pawns_not_promoting &= unmaskedSquare[from];
@@ -269,6 +311,12 @@ inline void Position::generatePawnMoves(MoveList &moves) {
         SquareIndex from = get_ls1b_index(pawns_not_promoting);
         Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        if (en_passant != Square::SQUARE_NONE) {
+            Bitboard ep = maskedSquare[en_passant];
+            if (attacks & ep) {
+                moves.push_back(encodeMove(from, en_passant, MoveFlags::EN_PASSANT));
+            }
+        }
         Bitboard empty = ~(occupation[opponent] | occupation[to_move]);
         Bitboard pushes = pawnPushes[to_move][from] & empty;
         while (pushes) {
