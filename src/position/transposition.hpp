@@ -5,15 +5,14 @@
 #include <array>
 #include <cstdint>
 
-constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 128;
+constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 256;
 
 class PositionInfo {
   public:
-    bool valid;
     Bitboard hash;
-    uint8_t depth;
     Evaluation eval;
-    uint8_t type;
+    uint8_t depth;
+    bool valid;
     PositionInfo() {
         valid = false;
         depth = 0;
@@ -23,7 +22,6 @@ class PositionInfo {
         hash = hashVal;
         depth = depthVal;
         eval = evalVal;
-        type = typeVal;
     }
 };
 
