@@ -170,67 +170,7 @@ inline void Position::generatePieceMoves(MoveList &moves) {
     Bitboard rook = bitboards[to_move][Piece::ROOK];
     Bitboard queen = bitboards[to_move][Piece::QUEEN];
     Bitboard king = bitboards[to_move][Piece::KING];
-    while (queen) {
-        SquareIndex from = get_ls1b_index(queen);
-        Bitboard result =
-            rookMagics[from].getAttack(oursOrTheirs) | bishopMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        queen &= unmaskedSquare[from];
-    }
-    while (bishop) {
-        SquareIndex from = get_ls1b_index(bishop);
-        Bitboard result = bishopMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        bishop &= unmaskedSquare[from];
-    }
-    while (knights) {
-        SquareIndex from = get_ls1b_index(knights);
-        Bitboard attacks = knightAttacks[from] & theirs;
-        Bitboard non_attacks = knightAttacks[from] & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
-        knights &= unmaskedSquare[from];
-    }
-    while (rook) {
-        SquareIndex from = get_ls1b_index(rook);
-        Bitboard result = rookMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        rook &= unmaskedSquare[from];
-    }
-    if (king) {
-        SquareIndex from = get_ls1b_index(king);
-        Bitboard attacks = kingAttacks[from] & theirs;
-        Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
-        if (castle_rights[to_move][Castle::KINGSIDE]) {
-            Offset moveDir = Direction::EAST;
-            Offset moveDirTarget = moveDir + Direction::EAST;
-            if (((king << moveDir) & neitherOursAndTheirs) &&
-                ((king << moveDirTarget) & neitherOursAndTheirs) && !inCheck(to_move)) {
-                Position intermediate = *this;
-                intermediate.setSquare(from + moveDir, to_move, Piece::KING);
-                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-                Position intermediate2 = *this;
-                intermediate.setSquare(from + moveDirTarget, to_move, Piece::KING);
-                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-                if (!intermediate.inCheck(intermediate.to_move) &&
-                    !intermediate2.inCheck(intermediate2.to_move)) {
-                    moves.push_back(
-                        encodeMove(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
-                }
-            }
-        }
-    }
+
     Bitboard pawns = bitboards[to_move][Piece::PAWN];
     Bitboard pawns_promoting;
     Bitboard pawns_not_promoting;
@@ -275,6 +215,67 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         moves.addMoves(from, attacks, MoveFlags::CAPTURE);
         moves.addMoves(from, pushes, MoveFlags::QUIET);
         pawns_promoting &= unmaskedSquare[from];
+    }
+    while (bishop) {
+        SquareIndex from = get_ls1b_index(bishop);
+        Bitboard result = bishopMagics[from].getAttack(oursOrTheirs);
+        Bitboard attacks = result & theirs;
+        Bitboard quiet = result & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet, MoveFlags::QUIET);
+        bishop &= unmaskedSquare[from];
+    }
+    while (knights) {
+        SquareIndex from = get_ls1b_index(knights);
+        Bitboard attacks = knightAttacks[from] & theirs;
+        Bitboard non_attacks = knightAttacks[from] & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
+        knights &= unmaskedSquare[from];
+    }
+    while (rook) {
+        SquareIndex from = get_ls1b_index(rook);
+        Bitboard result = rookMagics[from].getAttack(oursOrTheirs);
+        Bitboard attacks = result & theirs;
+        Bitboard quiet = result & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet, MoveFlags::QUIET);
+        rook &= unmaskedSquare[from];
+    }
+    while (queen) {
+        SquareIndex from = get_ls1b_index(queen);
+        Bitboard result =
+            rookMagics[from].getAttack(oursOrTheirs) | bishopMagics[from].getAttack(oursOrTheirs);
+        Bitboard attacks = result & theirs;
+        Bitboard quiet = result & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, quiet, MoveFlags::QUIET);
+        queen &= unmaskedSquare[from];
+    }
+    if (king) {
+        SquareIndex from = get_ls1b_index(king);
+        Bitboard attacks = kingAttacks[from] & theirs;
+        Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
+        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
+        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
+        if (castle_rights[to_move][Castle::KINGSIDE]) {
+            Offset moveDir = Direction::EAST;
+            Offset moveDirTarget = moveDir + Direction::EAST;
+            if (((king << moveDir) & neitherOursAndTheirs) &&
+                ((king << moveDirTarget) & neitherOursAndTheirs) && !inCheck(to_move)) {
+                Position intermediate = *this;
+                intermediate.setSquare(from + moveDir, to_move, Piece::KING);
+                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+                Position intermediate2 = *this;
+                intermediate.setSquare(from + moveDirTarget, to_move, Piece::KING);
+                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
+                if (!intermediate.inCheck(intermediate.to_move) &&
+                    !intermediate2.inCheck(intermediate2.to_move)) {
+                    moves.push_back(
+                        encodeMove(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
+                }
+            }
+        }
     }
 }
 

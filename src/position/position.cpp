@@ -3,6 +3,7 @@
 #include "chess.hpp"
 #include "magic.hpp"
 #include "move.hpp"
+#include "square.hpp"
 #include "transposition.hpp"
 #include "zobrist.hpp"
 #include <chrono>
@@ -247,6 +248,9 @@ SearchInfo search(Position *position, uint16_t depth) {
         Position newPos = *position;
         Move move = moves.get(index);
         newPos.makeMove(move);
+        std::cout << "Searching move" << squareIndexStringify(moveGetFrom(moves.get(index))) << " "
+                  << squareIndexStringify(moveGetTo(moves.get(index))) << " "
+                  << moveGetFlags(moves.get(index)) << std::endl;
         Evaluation current = -alphaBeta(&newPos, -beta, -alpha, depth);
         if (current > alpha) {
             alpha = current;
