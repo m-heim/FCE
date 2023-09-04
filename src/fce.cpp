@@ -11,6 +11,12 @@
 
 int main(int argc, char **argv) {
     std::cout << "Fce is starting now ..." << std::endl;
+    initGlobals();
+    std::cout << "Initialized precomputed patterns." << std::endl;
+    initZobrist(1234);
+    std::cout << "Initialized zobrist coefficients." << std::endl;
+    initTranspositionTable();
+    std::cout << "Initialized transposition table." << std::endl;
     char option = 'h';
     uint8_t depth = 0;
     std::string fen_file;
@@ -31,10 +37,6 @@ int main(int argc, char **argv) {
         }
     }
     std::string fen = readFen(fen_file);
-
-    initGlobals();
-    initZobrist(1234);
-    initTranspositionTable();
 
     Position position = parseFen(fen);
 
@@ -60,6 +62,10 @@ int main(int argc, char **argv) {
         } else if (input == "e") {
             exit(0);
         } else if (input == "l") {
+            std::string buf;
+            std::cout << "Depth:" << std::endl;
+            std::cin >> buf;
+            depth = std::atoi(buf.c_str());
             Evaluation eval = alphaBeta(&position, EvaluationLiterals::NEG_INF,
                                         EvaluationLiterals::POS_INF, depth);
             std::cout << std::to_string(eval) << std::endl;
