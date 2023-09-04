@@ -153,8 +153,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
     Bitboard key = position->hash;
     PositionInfo infoLookup = getPositionInfo(key);
-    if (infoLookup.hash == key && infoLookup.valid &&
-        (infoLookup.depth >= (depthleft + QUIESCE_DEPTH_N - 4))) {
+    if (infoLookup.hash == key && (infoLookup.depth >= (depthleft + QUIESCE_DEPTH_N - 4))) {
         return infoLookup.eval;
     }
     if (depthleft == 0) {
