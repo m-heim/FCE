@@ -2,6 +2,8 @@
 #include "position.hpp"
 #include "square.hpp"
 #include <cstring>
+#include <fstream>
+#include <iostream>
 
 Position parseFen(const std::string &fen) {
     int start = 0;
@@ -81,4 +83,18 @@ Position parseFen(const std::string &fen) {
     position.plies = std::stoi(move);
     position.hash = position.computeHash();
     return position;
+}
+
+std::string readFen(const std::string &fenPath) {
+    std::ifstream fen_file_stream(fenPath, std::ios::in);
+    if (!fen_file_stream.is_open()) {
+        fce_error("Failed to open fen", 1);
+    }
+    fen_file_stream.seekg(0, std::ios_base::end);
+    auto fen_size = fen_file_stream.tellg();
+    std::string fen(fen_size, '\0');
+    fen_file_stream.seekg(0);
+    fen_file_stream.read(fen.data(), fen_size);
+    fen_file_stream.close();
+    return fen;
 }
