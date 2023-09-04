@@ -12,13 +12,10 @@ class PositionInfo {
     Bitboard hash;
     Evaluation eval;
     uint8_t depth;
-    bool valid;
     PositionInfo() {
-        valid = false;
         depth = 0;
     };
     PositionInfo(Bitboard hashVal, uint8_t depthVal, Evaluation evalVal, uint8_t typeVal) {
-        valid = true;
         hash = hashVal;
         depth = depthVal;
         eval = evalVal;
