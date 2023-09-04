@@ -1,13 +1,13 @@
 #pragma once
-#include "bitboard.hpp"
-#include "chess.hpp"
 #include "magic.hpp"
 #include "move.hpp"
-#include "square.hpp"
 #include "zobrist.hpp"
 #include <array>
+#include <bitboard.hpp>
+#include <chess.hpp>
 #include <cstdint>
 #include <iostream>
+#include <square.hpp>
 #include <vector>
 
 // typedefs

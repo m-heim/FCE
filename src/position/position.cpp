@@ -1,14 +1,14 @@
 #include "position.hpp"
-#include "bitboard.hpp"
-#include "chess.hpp"
 #include "magic.hpp"
 #include "move.hpp"
-#include "square.hpp"
 #include "transposition.hpp"
 #include "zobrist.hpp"
+#include <bitboard.hpp>
+#include <chess.hpp>
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <square.hpp>
 
 void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) {
     Piece oldPiece = board[squareVal].piece;

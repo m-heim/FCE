@@ -1,7 +1,8 @@
 #pragma once
-#include "bitboard.hpp"
-#include "chess.hpp"
-#define MAGICS_ARRAY_SIZE 156800
+#include <bitboard.hpp>
+#include <chess.hpp>
+
+constexpr uint64_t MAGICS_ARRAY_SIZE = 156800;
 
 enum Direction : Offset {
     SOUTH = -8,
@@ -45,17 +46,17 @@ class Magic {
     Bitboard magic;
     Bitboard mask;
     uint8_t shift;
-    inline Bitboard getMagicIndex(Bitboard board) {
+    Bitboard getMagicIndex(Bitboard board) {
         return (board * magic) >> shift;
     }
-    inline Bitboard getAttack(Bitboard occupation) {
-        return attacks[getMagicIndex(occupation & mask)];
+    Bitboard getAttack(Bitboard occupation) {
+        return attacks[getMagicIndex(occupation & this->mask)];
     }
 };
-
 extern std::array<Bitboard, MAGICS_ARRAY_SIZE> magics;
 extern std::array<Magic, Square::SQUARE_COUNT> rookMagics;
 extern std::array<Magic, Square::SQUARE_COUNT> bishopMagics;
+
 extern std::array<std::array<Bitboard, Square::SQUARE_COUNT>, RayDirection::RAY_COUNT> rays;
 extern std::array<Bitboard, Square::SQUARE_COUNT> rankAttacks;
 extern std::array<Bitboard, Square::SQUARE_COUNT> fileAttacks;

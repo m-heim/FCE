@@ -1,8 +1,8 @@
 #pragma once
-#include "bitboard.hpp"
-#include "chess.hpp"
 #include "position.hpp"
 #include <array>
+#include <bitboard.hpp>
+#include <chess.hpp>
 #include <cstdint>
 
 constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 256;

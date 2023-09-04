@@ -1,7 +1,7 @@
 #pragma once
-#include "bitboard.hpp"
-#include "chess.hpp"
 #include <array>
+#include <bitboard.hpp>
+#include <chess.hpp>
 
 extern std::array<std::array<std::array<Bitboard, Square::SQUARE_COUNT>, Piece::KING + 1>,
                   Color::BLACK + 1>

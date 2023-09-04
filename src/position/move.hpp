@@ -1,8 +1,8 @@
 #pragma once
-#include "bitboard.hpp"
 #include "magic.hpp"
 #include "square.hpp"
 #include <array>
+#include <bitboard.hpp>
 #include <cstdint>
 
 // typedefs

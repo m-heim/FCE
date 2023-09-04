@@ -10,7 +10,7 @@
 // typedefs
 typedef std::uint64_t Bitboard;
 
-// constansts
+// constants
 constexpr uint64_t BITBOARD_SUBSETS_N = 4096;
 
 constexpr Bitboard emptyBitboard = 0x0000000000000000;
@@ -88,5 +88,8 @@ inline SquareIndex get_ms1b_index(Bitboard bitboard) {
 inline uint8_t bitboardGetHW(Bitboard bitboard) {
     return std::popcount<Bitboard>(bitboard);
 }
+
+extern std::minstd_rand randomNumberEngine;
+extern std::uniform_int_distribution<Bitboard> randomBitboardDistribution;
 void reseedBitboardEngine(uint16_t seed);
 Bitboard getRandomBitboard();

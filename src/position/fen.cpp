@@ -1,9 +1,9 @@
 #include "fen.hpp"
 #include "position.hpp"
-#include "square.hpp"
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <square.hpp>
 
 Position parseFen(const std::string &fen) {
     int start = 0;
