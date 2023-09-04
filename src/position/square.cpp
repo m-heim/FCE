@@ -1,5 +1,6 @@
 #include "square.hpp"
 #include <iostream>
+#include <map>
 
 std::string squareIndexStringify(SquareIndex index) {
     std::string ret;
@@ -29,7 +30,9 @@ SquareInfo::SquareInfo(Color colorVal, Piece pieceVal) {
     color = colorVal;
     piece = pieceVal;
 }
+
 SquareInfo::SquareInfo(char pieceAsChar) {
+    std::map<char, SquareInfo> charToSquareInfo;
     color = (pieceAsChar >= 'a' && pieceAsChar <= 'z' ? Color::BLACK : Color::WHITE);
     if (pieceAsChar == 'p' || pieceAsChar == 'P') {
         piece = Piece::PAWN;
