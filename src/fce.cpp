@@ -30,36 +30,19 @@ int main(int argc, char **argv) {
             exit(2);
         }
     }
-    std::ifstream fen_file_stream(fen_file, std::ios::in);
-    if (!fen_file_stream.is_open()) {
-        fce_error("Failed to open fen", 1);
-    }
-    fen_file_stream.seekg(0, std::ios_base::end);
-    auto fen_size = fen_file_stream.tellg();
-    std::string fen(fen_size, '\0');
-    fen_file_stream.seekg(0);
-    fen_file_stream.read(fen.data(), fen_size);
-    fen_file_stream.close();
+    std::string fen = readFen(fen_file);
 
     initGlobals();
     initZobrist(1234);
     initTranspositionTable();
+
     Position position = parseFen(fen);
-
-    MoveList moves;
-    position.generateMoves(moves);
-
-    std::cout << "Found" << std::to_string(moves.count) << std::endl;
 
     std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-    Evaluation eval =
-        alphaBeta(&position, EvaluationLiterals::NEG_INF, EvaluationLiterals::POS_INF, depth);
-    std::cout << std::to_string(eval) << std::endl;
-    ;
     while (true) {
         std::string input;
-        std::cout << "s - search, m - make a move, d - debug, e - exit" << std::endl;
+        std::cout << "s - search, m - make a move, d - debug, l - eval, e - exit" << std::endl;
         std::cin >> input;
         if (input == "s") {
             int innerDepth = 0;
@@ -76,8 +59,13 @@ int main(int argc, char **argv) {
             std::cin >> buf;
         } else if (input == "e") {
             exit(0);
+        } else if (input == "l") {
+            Evaluation eval = alphaBeta(&position, EvaluationLiterals::NEG_INF,
+                                        EvaluationLiterals::POS_INF, depth);
+            std::cout << std::to_string(eval) << std::endl;
         } else if (input == "d") {
-            std::cout << "n - knight attacks" << std::endl;
+            std::cout << "n - knight attacks, m - moves, b - bishop magics, r - rook magics"
+                      << std::endl;
             std::string buf;
             std::cin >> buf;
             if (buf == "n") {
@@ -93,14 +81,23 @@ int main(int argc, char **argv) {
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
                 SquareIndex index = stringToSquareIndex(squareBuf);
-                printBitboard(bishopMagics.at(index).mask);
-                printBitboard(bishopMagics.at(index).getAttack(fileC | fileD | fileE | rank2 |
-                                                               rank3 | rank4));
                 std::array<Bitboard, BITBOARD_SUBSETS_N> subsets =
                     getBitboardSubsets(bishopMasks.at(index));
                 for (int i = 0; i < bitboardGetHW(bishopMasks.at(index)); i++) {
                     printBitboard(subsets.at(i));
                     printBitboard(bishopMagics.at(index).getAttack(subsets.at(i)));
+                }
+            } else if (buf == "r") {
+                std::string squareBuf;
+                std::cout << "Square" << std::endl;
+                std::cin >> squareBuf;
+                std::cout << squareBuf << std::endl;
+                SquareIndex index = stringToSquareIndex(squareBuf);
+                std::array<Bitboard, BITBOARD_SUBSETS_N> subsets =
+                    getBitboardSubsets(rookMasks.at(index));
+                for (int i = 0; i < bitboardGetHW(rookMasks.at(index)); i++) {
+                    printBitboard(subsets.at(i));
+                    printBitboard(rookMagics.at(index).getAttack(subsets.at(i)));
                 }
             }
         } else {
