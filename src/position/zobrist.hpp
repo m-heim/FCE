@@ -3,6 +3,8 @@
 #include <bitboard.hpp>
 #include <chess.hpp>
 
+constexpr uint64_t ZOBRIST_SEED = 1234;
+
 extern std::array<std::array<std::array<Bitboard, Square::SQUARE_COUNT>, Piece::KING + 1>,
                   Color::BLACK + 1>
     zobristKeys;

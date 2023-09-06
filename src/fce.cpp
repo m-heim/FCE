@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
     std::cout << "Fce is starting now ..." << std::endl;
     initGlobals();
     std::cout << "Initialized precomputed patterns." << std::endl;
-    initZobrist(1234);
+    initZobrist(ZOBRIST_SEED);
     std::cout << "Initialized zobrist coefficients." << std::endl;
-    initTranspositionTable();
+    TranspositionTable::init();
     std::cout << "Initialized transposition table." << std::endl;
     char option = 'h';
     uint8_t depth = 0;
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
             std::cin >> bufDepth;
             innerDepth = std::atoi(bufDepth.c_str());
             SearchInfo bestMove = search(&position, innerDepth);
-            std::cout << "BestMove" << squareIndexStringify(moveGetFrom(bestMove.first))
-                      << squareIndexStringify(moveGetTo(bestMove.first)) << std::endl
+            std::cout << "BestMove" << moveGetFrom(bestMove.first).stringify()
+                      << moveGetTo(bestMove.first).stringify() << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
         } else if (input == "m") {
             std::string buf;
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
                 std::cout << "Square" << std::endl;
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
-                SquareIndex index = stringToSquareIndex(squareBuf);
+                SquareIndex index(squareBuf);
                 std::array<Bitboard, BITBOARD_SUBSETS_N> subsets =
                     getBitboardSubsets(bishopMasks.at(index));
                 for (int i = 0; i < bitboardGetHW(bishopMasks.at(index)); i++) {
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
                 std::cout << "Square" << std::endl;
                 std::cin >> squareBuf;
                 std::cout << squareBuf << std::endl;
-                SquareIndex index = stringToSquareIndex(squareBuf);
+                SquareIndex index(squareBuf);
                 std::array<Bitboard, BITBOARD_SUBSETS_N> subsets =
                     getBitboardSubsets(rookMasks.at(index));
                 for (int i = 0; i < bitboardGetHW(rookMasks.at(index)); i++) {

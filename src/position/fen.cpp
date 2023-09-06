@@ -1,5 +1,6 @@
 #include "fen.hpp"
 #include "position.hpp"
+#include "util.hpp"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -73,9 +74,9 @@ Position parseFen(const std::string &fen) {
     }
 
     if (en_passant.at(0) == '-') {
-        position.en_passant = SQUARE_NONE;
-    } else if (squareIndexValidate(en_passant)) {
-        position.en_passant = stringToSquareIndex(en_passant);
+        position.en_passant = SquareIndex::Squares::SQUARE_NONE;
+    } else if (SquareIndex::validate(en_passant)) {
+        position.en_passant = SquareIndex(en_passant);
     } else {
         fce_error("Couldn\'t read fen enpassant", 1);
     }

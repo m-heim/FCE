@@ -65,6 +65,7 @@ constexpr Bitboard extendedCenter =
 
 // non performance relevant functions
 std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask);
+std::string stringifyBitboard(Bitboard board);
 void printBitboard(Bitboard board);
 
 // inline functions

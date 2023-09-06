@@ -27,8 +27,3 @@ char pieceToChar(Piece piece) {
     std::cerr << "Invalid input when converting piece to character" << std::endl;
     exit(1);
 }
-
-void fce_error(const std::string &message, int exit_code) {
-    std::cerr << message << std::endl;
-    std::exit(exit_code);
-}

@@ -4,25 +4,6 @@
 
 constexpr uint64_t MAGICS_ARRAY_SIZE = 156800;
 
-enum Direction : Offset {
-    SOUTH = -8,
-    NORTH = 8,
-    WEST = -1,
-    EAST = 1,
-    SOUTH_WEST = SOUTH + WEST,
-    SOUTH_EAST = SOUTH + EAST,
-    NORTH_EAST = NORTH + EAST,
-    NORTH_WEST = NORTH + WEST,
-    SSW = SOUTH + SOUTH + WEST,
-    SSE = SOUTH + SOUTH + EAST,
-    EES = EAST + EAST + SOUTH,
-    EEN = EAST + EAST + NORTH,
-    NNE = NORTH + NORTH + EAST,
-    NNW = NORTH + NORTH + WEST,
-    WWN = WEST + WEST + NORTH,
-    WWS = WEST + WEST + SOUTH
-};
-
 enum RayDirection : Offset {
     SOUTH_EAST_RAY,
     SOUTH_RAY,

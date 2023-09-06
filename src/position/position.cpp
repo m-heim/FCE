@@ -25,22 +25,6 @@ void Position::setSquare(SquareIndex squareVal, Color colorVal, Piece pieceVal) 
     occupation[colorVal] |= mask;          // add piece to occupations
 }
 
-Position::Position() {
-    SquareInfo empty = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
-    for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-        board[square] = empty;
-    }
-    memset(&bitboards, 0, sizeof(bitboards));
-    occupation[Color::WHITE] = 0ULL;
-    occupation[Color::BLACK] = 0ULL;
-    occupation[Color::NO_COLOR] = 0ULL;
-    plies = 0;
-    plies_since_capture = 0;
-    to_move = Color::WHITE;
-    opponent = Color::BLACK;
-    en_passant = Square::SQUARE_NONE;
-}
-
 std::string Position::stringify_board() {
     std::string ret;
     ret.append("  A B C D E F G H\n");
@@ -48,7 +32,7 @@ std::string Position::stringify_board() {
         ret.push_back((char)('1' + row));
         for (int8_t col = File::FILE_A; col <= File::FILE_TOP; col++) {
             ret.push_back(' ');
-            SquareIndex square = row * Square::SQUARE_A2 + col;
+            SquareIndex square = (row * Square::SQUARE_A2) + col;
             char piece = pieceToChar(board[square].piece);
             if (board[square].color == Color::WHITE && piece != ' ') {
                 piece += 'A' - 'a';
@@ -144,19 +128,19 @@ Move negaMaxRoot(Position position, uint16_t depth) {
     return bestMove;
 }
 
-std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated;
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft) {
+std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated{0ULL};
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depth) {
     // This search is based on the fact that if we can choose between multiple moves and one of
     // those moves yields in a better position than what our opponent can achieve we can ignore this
     // whole subtree
     // Add algorithm for repetition
-    positionsEvaluated.at(depthleft + QUIESCE_DEPTH_N) += 1;
+    positionsEvaluated[depth + QUIESCE_DEPTH_N] += 1;
     Bitboard key = position->hash;
-    PositionInfo infoLookup = getPositionInfo(key);
-    if (infoLookup.hash == key && (infoLookup.depth >= (depthleft + QUIESCE_DEPTH_N - 4))) {
+    PositionInfo infoLookup = TranspositionTable::get(key);
+    if (infoLookup.hash == key && (infoLookup.depth >= (depth + QUIESCE_DEPTH_N - 4))) {
         return infoLookup.eval;
     }
-    if (depthleft == 0) {
+    if (depth == 0) {
         return quiesce(position, alpha, beta, QUIESCE_DEPTH_N);
         // return position->evaluate();
     }
@@ -174,12 +158,14 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
             continue;
         }
         legalMoves += 1;
-        score = -alphaBeta(&newPos, -beta, -alpha, depthleft - 1);
+        score = -alphaBeta(&newPos, -beta, -alpha, depth - 1);
         // opponent has a better move in the search tree already so return their
         // limit as ours
         if (score >= beta) {
-            PositionInfo info = PositionInfo(position->hash, depthleft + QUIESCE_DEPTH_N, beta, 0);
-            insertPositionInfo(info);
+            PositionInfo info = PositionInfo(position->hash, depth + QUIESCE_DEPTH_N, beta, 0);
+            if (depth > 2) {
+                TranspositionTable::insert(info);
+            }
             return beta; //  fail hard beta-cutoff
         }
         // if the move found is better than the best score we can achieve update
@@ -190,8 +176,10 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     if (legalMoves == 0) {
         return EvaluationLiterals::MATE;
     }
-    PositionInfo info = PositionInfo(position->hash, depthleft + QUIESCE_DEPTH_N, alpha, 1);
-    insertPositionInfo(info);
+    PositionInfo info = PositionInfo(position->hash, depth + QUIESCE_DEPTH_N, alpha, 1);
+    if (depth > 2) {
+        TranspositionTable::insert(info);
+    }
     return alpha;
 }
 
@@ -247,8 +235,8 @@ SearchInfo search(Position *position, uint16_t depth) {
         Position newPos = *position;
         Move move = moves.get(index);
         newPos.makeMove(move);
-        std::cout << "Searching move" << squareIndexStringify(moveGetFrom(moves.get(index))) << " "
-                  << squareIndexStringify(moveGetTo(moves.get(index))) << " "
+        std::cout << "Searching move" << moveGetFrom(moves.get(index)).stringify() << " "
+                  << moveGetTo(moves.get(index)).stringify() << " "
                   << moveGetFlags(moves.get(index)) << std::endl;
         Evaluation current = -alphaBeta(&newPos, -beta, -alpha, depth);
         if (current > alpha) {
@@ -257,16 +245,14 @@ SearchInfo search(Position *position, uint16_t depth) {
         }
     }
     uint64_t positions = 0;
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < depth; i++) {
         positions += positionsEvaluated[i];
         std::cout << "Depth" << std::to_string(i) << " " << std::to_string(positionsEvaluated[i])
                   << std::endl;
     }
-    double rate = (double)positions /
-                  std::chrono::duration_cast<std::chrono::nanoseconds>(
-                      std::chrono::high_resolution_clock::now() - start)
-                      .count() *
-                  1000;
+    double rate = (double)positions / (double)std::chrono::duration_cast<std::chrono::microseconds>(
+                                          std::chrono::high_resolution_clock::now() - start)
+                                          .count();
     std::cout << "Total of:\n"
               << std::to_string(positions) << "\nat:\n"
               << std::to_string(rate) << "MP/s" << std::endl;
@@ -291,12 +277,12 @@ Bitboard Position::computeHash() {
         result ^= zobristEnPassant[file];
     }
     result ^= zobristCastle[Color::WHITE][Castle::KINGSIDE]
-                           [castle_rights[Color::WHITE][Castle::KINGSIDE]];
+                           [static_cast<int>(castle_rights[Color::WHITE][Castle::KINGSIDE])];
     result ^= zobristCastle[Color::WHITE][Castle::QUEENSIDE]
-                           [castle_rights[Color::WHITE][Castle::QUEENSIDE]];
+                           [static_cast<int>(castle_rights[Color::WHITE][Castle::QUEENSIDE])];
     result ^= zobristCastle[Color::BLACK][Castle::KINGSIDE]
-                           [castle_rights[Color::BLACK][Castle::KINGSIDE]];
+                           [static_cast<int>(castle_rights[Color::BLACK][Castle::KINGSIDE])];
     result ^= zobristCastle[Color::BLACK][Castle::QUEENSIDE]
-                           [castle_rights[Color::BLACK][Castle::QUEENSIDE]];
+                           [static_cast<int>(castle_rights[Color::BLACK][Castle::QUEENSIDE])];
     return result;
 }

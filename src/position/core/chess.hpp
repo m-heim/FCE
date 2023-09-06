@@ -18,7 +18,8 @@ enum File : uint8_t {
     FILE_G = 6,
     FILE_H = 7,
     FILE_TOP = FILE_H,
-    FILE_COUNT = 8
+    FILE_BOTTOM = FILE_A,
+    FILE_COUNT = FILE_TOP - FILE_BOTTOM + 1
 };
 
 enum Rank : uint8_t {
@@ -31,31 +32,14 @@ enum Rank : uint8_t {
     RANK_7 = 6,
     RANK_8 = 7,
     RANK_TOP = RANK_8,
-    RANK_COUNT = 8,
-};
-
-enum EvaluationLiterals : Evaluation {
-    NEG_INF = -100000000000,
-    MATE = NEG_INF + 1000,
-    EVEN = 0,
-    POS_INF = 100000000000,
-
-    PAWN_VAL = 100,
-    KNIGHT_VAL = 300,
-    BISHOP_VAL = 315,
-    ROOK_VAL = 450,
-    QUEEN_VAL = 900,
-    KING_VAL = 2000000,
-
-    MULTIPLE_PAWN_VAL = -50,
-    MULTIPLE_BISHOP_VAL = 150,
-    CENTER_PAWN_VAL = 100,
+    RANK_BOTTOM = RANK_1,
+    RANK_COUNT = RANK_TOP - RANK_BOTTOM + 1
 };
 
 enum Color : std::uint8_t {
-    WHITE,
-    BLACK,
-    NO_COLOR,
+    WHITE = 0,
+    BLACK = 1,
+    NO_COLOR = 2,
     COLOR_TOP = NO_COLOR
 };
 
@@ -67,7 +51,9 @@ enum Piece : std::uint8_t {
     QUEEN,
     KING,
     NO_PIECE,
-    PIECE_TOP = NO_PIECE
+    PIECE_TOP = NO_PIECE,
+    PIECE_BOTTOM = PAWN,
+    PIECE_COUNT = PIECE_TOP - PIECE_BOTTOM + 1
 };
 
 enum Castle : std::uint8_t {
@@ -75,17 +61,7 @@ enum Castle : std::uint8_t {
     QUEENSIDE,
     CASTLE_BOTTOM = KINGSIDE,
     CASTLE_TOP = QUEENSIDE,
-    CASTLE_COUNT = CASTLE_TOP + 1
+    CASTLE_COUNT = CASTLE_TOP - CASTLE_BOTTOM + 1
 };
-
-// INLINE FUNCTIONS FAST PROCESSING
-// bitboard manipulation
-
-constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
-    EvaluationLiterals::PAWN_VAL, EvaluationLiterals::KNIGHT_VAL, EvaluationLiterals::BISHOP_VAL,
-    EvaluationLiterals::ROOK_VAL, EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
-
-// non performance relevant functions
-void fce_error(const std::string &message, int exit_code);
 
 char pieceToChar(Piece piece);

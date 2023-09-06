@@ -4,11 +4,8 @@
 #include <iostream>
 #include <string>
 
-// typedefs
-typedef std::uint8_t SquareIndex;
-
 // enumerations
-enum Square : SquareIndex {
+enum Square : uint8_t {
     SQUARE_A1,
     SQUARE_B1,
     SQUARE_C1,
@@ -77,18 +74,87 @@ enum Square : SquareIndex {
     SQUARE_NONE
 };
 
-// functions
-std::string squareIndexStringify(SquareIndex index);
-SquareIndex stringToSquareIndex(const std::string &square);
-void squareIndexPrint(SquareIndex index);
-bool squareIndexValidate(const std::string &square);
+enum Direction : int8_t {
+    SOUTH = -8,
+    NORTH = 8,
+    WEST = -1,
+    EAST = 1,
+    SOUTH_WEST = SOUTH + WEST,
+    SOUTH_EAST = SOUTH + EAST,
+    NORTH_EAST = NORTH + EAST,
+    NORTH_WEST = NORTH + WEST,
+    SSW = SOUTH + SOUTH + WEST,
+    SSE = SOUTH + SOUTH + EAST,
+    EES = EAST + EAST + SOUTH,
+    EEN = EAST + EAST + NORTH,
+    NNE = NORTH + NORTH + EAST,
+    NNW = NORTH + NORTH + WEST,
+    WWN = WEST + WEST + NORTH,
+    WWS = WEST + WEST + SOUTH
+};
+
+class SquareIndex {
+  public:
+    using Squares = Square;
+    operator int() const {
+        return square;
+    };
+    SquareIndex &operator++() {
+        square++;
+        return *this;
+    }
+    SquareIndex() {
+        square = Squares::SQUARE_NONE;
+    }
+    SquareIndex operator++(int) {
+        SquareIndex old = *this;
+        operator++();
+        return old;
+    }
+    SquareIndex(int index) {
+        square = index;
+    };
+    explicit SquareIndex(const std::string &strs) {
+        square = ((strs.at(1) - '1') * Square::SQUARE_A2) + (strs.at(0) - 'a');
+    }
+    std::string stringify();
+    void print();
+    static bool validate(const std::string &strs) {
+        return strs.length() == 2 &&
+               (strs[0] >= 'a' && strs[0] <= 'h' && strs[1] >= '1' && strs[1] <= '8');
+    }
+
+  private:
+    uint8_t square;
+};
 
 // classes
 class SquareInfo {
   public:
     Color color;
     Piece piece;
-    SquareInfo(Color colorVal, Piece pieceVal);
-    SquareInfo(char pieceAsChar);
     SquareInfo() = default;
+    SquareInfo(Color colorVal, Piece pieceVal) {
+        color = colorVal;
+        piece = pieceVal;
+    }
+    SquareInfo(char pieceAsChar) {
+        color = (pieceAsChar >= 'a' && pieceAsChar <= 'z' ? Color::BLACK : Color::WHITE);
+        if (pieceAsChar == 'p' || pieceAsChar == 'P') {
+            piece = Piece::PAWN;
+        } else if (pieceAsChar == 'n' || pieceAsChar == 'N') {
+            piece = Piece::KNIGHT;
+        } else if (pieceAsChar == 'b' || pieceAsChar == 'B') {
+            piece = Piece::BISHOP;
+        } else if (pieceAsChar == 'r' || pieceAsChar == 'R') {
+            piece = Piece::ROOK;
+        } else if (pieceAsChar == 'q' || pieceAsChar == 'Q') {
+            piece = Piece::QUEEN;
+        } else if (pieceAsChar == 'k' || pieceAsChar == 'K') {
+            piece = Piece::KING;
+        } else {
+            std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
+            exit(1);
+        }
+    }
 };

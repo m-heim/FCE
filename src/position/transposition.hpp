@@ -5,27 +5,40 @@
 #include <chess.hpp>
 #include <cstdint>
 
-constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 256;
+constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 128;
 
 class PositionInfo {
   public:
     Bitboard hash;
     Evaluation eval;
     uint8_t depth;
+    uint8_t type;
     PositionInfo() {
         depth = 0;
-    };
+    }
     PositionInfo(Bitboard hashVal, uint8_t depthVal, Evaluation evalVal, uint8_t typeVal) {
         hash = hashVal;
         depth = depthVal;
         eval = evalVal;
+        type = typeVal;
     }
 };
 
-extern std::array<PositionInfo, TRANSPOSITION_TABLE_N> transpositionTable;
+class TranspositionTable {
 
-void initTranspositionTable();
+  public:
+    static std::array<PositionInfo, TRANSPOSITION_TABLE_N> transpositionTable;
+    static void init() {
+        for (uint64_t index = 0; index < TRANSPOSITION_TABLE_N; index++) {
+            transpositionTable[index] = PositionInfo();
+        }
+    }
 
-PositionInfo getPositionInfo(Bitboard hash);
+    static PositionInfo get(Bitboard hash) {
+        return transpositionTable[hash % TRANSPOSITION_TABLE_N];
+    }
 
-void insertPositionInfo(PositionInfo position);
+    static void insert(PositionInfo position) {
+        transpositionTable[position.hash % TRANSPOSITION_TABLE_N] = position;
+    }
+};

@@ -44,9 +44,11 @@ inline Move encodeMove(SquareIndex from, SquareIndex to, uint8_t flags) {
 
 class MoveList {
   public:
-    uint8_t count = 0;
+    uint8_t count;
     std::array<Move, MOVE_LIMIT_N> moves;
-    MoveList() = default;
+    MoveList() {
+        count = 0;
+    };
     inline Move get(uint8_t index) {
         return moves[index];
     }
@@ -64,8 +66,8 @@ class MoveList {
     inline std::string stringify() {
         std::string result;
         for (uint8_t i = 0; i < count; i++) {
-            std::string fromSquare = squareIndexStringify(moveGetFrom(moves[i]));
-            std::string toSquare = squareIndexStringify(moveGetTo(moves[i]));
+            std::string fromSquare = moveGetFrom(moves[i]).stringify();
+            std::string toSquare = moveGetTo(moves[i]).stringify();
             MoveFlags flag = moveGetFlags(moves[i]);
             result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + " " +
                           std::to_string(flag) + "\n");

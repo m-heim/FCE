@@ -6,6 +6,7 @@
 #include <bitboard.hpp>
 #include <chess.hpp>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <square.hpp>
 #include <vector>
@@ -13,9 +14,31 @@
 // typedefs
 typedef std::pair<Move, Evaluation> SearchInfo;
 
+enum EvaluationLiterals : Evaluation {
+    NEG_INF = -100000000000,
+    MATE = NEG_INF + 1000,
+    EVEN = 0,
+    POS_INF = 100000000000,
+
+    PAWN_VAL = 100,
+    KNIGHT_VAL = 300,
+    BISHOP_VAL = 315,
+    ROOK_VAL = 450,
+    QUEEN_VAL = 900,
+    KING_VAL = 2000000,
+
+    MULTIPLE_PAWN_VAL = -50,
+    MULTIPLE_BISHOP_VAL = 150,
+    CENTER_PAWN_VAL = 100,
+};
+
 // constants
 constexpr uint64_t SEARCH_DEPTH_N = 1000;
 constexpr uint64_t QUIESCE_DEPTH_N = 30;
+
+constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
+    EvaluationLiterals::PAWN_VAL, EvaluationLiterals::KNIGHT_VAL, EvaluationLiterals::BISHOP_VAL,
+    EvaluationLiterals::ROOK_VAL, EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
 
 class Position {
   public:
@@ -30,7 +53,6 @@ class Position {
     uint16_t plies;
     uint16_t plies_since_capture;
     Bitboard hash;
-    Position();
     void setSquare(SquareIndex square, Color color, Piece piece);
     std::string stringify_board();
     void print_board();
@@ -46,6 +68,21 @@ class Position {
     void generateMoves(MoveList &moves);
     bool inCheck(Color side);
     Bitboard computeHash();
+    Position() {
+        SquareInfo empty = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
+        for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
+            board[square] = empty;
+        }
+        memset(&bitboards, 0, sizeof(bitboards));
+        occupation[Color::WHITE] = 0ULL;
+        occupation[Color::BLACK] = 0ULL;
+        occupation[Color::NO_COLOR] = 0ULL;
+        plies = 0;
+        plies_since_capture = 0;
+        to_move = Color::WHITE;
+        opponent = Color::BLACK;
+        this->en_passant = SquareIndex::Squares::SQUARE_NONE;
+    }
 };
 
 Evaluation negaMax(Position position, uint16_t depth);
@@ -124,12 +161,12 @@ inline void Position::makeMove(Move m) {
         plies_since_capture = 0;
     } else if (flags == MoveFlags::CASTLE_KINGSIDE) {
         setSquare(to, movingPiece.color, Piece::KING);
-        setSquare(from + 1, movingPiece.color, Piece::ROOK);
+        setSquare(from + Direction::EAST, movingPiece.color, Piece::ROOK);
         setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        setSquare(to + 1, Color::NO_COLOR, Piece::NO_PIECE);
+        setSquare(to + Direction::EAST, Color::NO_COLOR, Piece::NO_PIECE);
         hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][Piece::ROOK][from + 3];
-        hash ^= zobristKeys[to_move][Piece::ROOK][to - 1];
+        hash ^= zobristKeys[to_move][Piece::ROOK][to + Direction::EAST];
+        hash ^= zobristKeys[to_move][Piece::ROOK][to + Direction::WEST];
         hash ^= zobristKeys[to_move][movingPiece.piece][to];
         plies_since_capture += 1;
     } else if (flags == MoveFlags::EN_PASSANT) {
