@@ -33,8 +33,8 @@ enum EvaluationLiterals : Evaluation {
 };
 
 // constants
-constexpr uint64_t SEARCH_DEPTH_N = 1000;
-constexpr uint64_t QUIESCE_DEPTH_N = 30;
+constexpr uint16_t SEARCH_DEPTH_N = 1000;
+constexpr uint16_t QUIESCE_DEPTH_N = 100;
 
 constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
     EvaluationLiterals::PAWN_VAL, EvaluationLiterals::KNIGHT_VAL, EvaluationLiterals::BISHOP_VAL,
@@ -42,7 +42,6 @@ constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
 
 class Position {
   public:
-    // BOARD REPRESENTATIONS
     std::array<SquareInfo, Square::SQUARE_COUNT> board;
     std::array<std::array<Bitboard, Piece::PIECE_TOP + 1>, Color::COLOR_TOP + 1> bitboards;
     std::array<Bitboard, Color::COLOR_TOP + 1> occupation;
@@ -87,7 +86,7 @@ class Position {
 
 Evaluation negaMax(Position position, uint16_t depth);
 Move negaMaxRoot(Position position, uint16_t depth);
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depthleft);
+Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depth);
 SearchInfo search(Position *position, uint16_t depth);
 Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_t depth);
 

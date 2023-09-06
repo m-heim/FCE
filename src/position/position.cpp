@@ -245,7 +245,7 @@ SearchInfo search(Position *position, uint16_t depth) {
         }
     }
     uint64_t positions = 0;
-    for (int i = 0; i < depth; i++) {
+    for (int i = 0; i < (depth + QUIESCE_DEPTH_N); i++) {
         positions += positionsEvaluated[i];
         std::cout << "Depth" << std::to_string(i) << " " << std::to_string(positionsEvaluated[i])
                   << std::endl;

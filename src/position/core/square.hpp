@@ -133,7 +133,10 @@ class SquareInfo {
   public:
     Color color;
     Piece piece;
-    SquareInfo() = default;
+    SquareInfo() {
+        color = Color::NO_COLOR;
+        piece = Piece::NO_PIECE;
+    }
     SquareInfo(Color colorVal, Piece pieceVal) {
         color = colorVal;
         piece = pieceVal;
