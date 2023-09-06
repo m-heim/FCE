@@ -41,7 +41,7 @@ void printBitboard(Bitboard board) {
 }
 
 // RAND
-std::minstd_rand randomNumberEngine(987);
+std::mt19937_64 randomNumberEngine(BITBOARD_RANDOM_NUMBER_SEED);
 std::uniform_int_distribution<Bitboard> randomBitboardDistribution(emptyBitboard, fullBitboard);
 
 void reseedBitboardEngine(uint16_t seed) {

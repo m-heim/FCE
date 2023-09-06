@@ -90,7 +90,8 @@ inline uint8_t bitboardGetHW(Bitboard bitboard) {
     return std::popcount<Bitboard>(bitboard);
 }
 
-extern std::minstd_rand randomNumberEngine;
+constexpr Bitboard BITBOARD_RANDOM_NUMBER_SEED = fileA | fileC | rank3 | rank7;
+extern std::mt19937_64 randomNumberEngine;
 extern std::uniform_int_distribution<Bitboard> randomBitboardDistribution;
 void reseedBitboardEngine(uint16_t seed);
 Bitboard getRandomBitboard();

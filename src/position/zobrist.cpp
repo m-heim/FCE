@@ -8,7 +8,7 @@ std::array<Bitboard, File::FILE_COUNT> zobristEnPassant;
 std::array<std::array<std::array<Bitboard, 2>, Castle::CASTLE_COUNT>, Color::BLACK + 1>
     zobristCastle;
 
-void initZobrist(uint16_t seed) {
+void initZobrist(Bitboard seed) {
     reseedBitboardEngine(seed);
     for (uint8_t color = Color::WHITE; color <= Color::BLACK; color++) {
         for (uint8_t piece = 0; piece <= Piece::KING; piece++) {
