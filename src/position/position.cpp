@@ -137,7 +137,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
     positionsEvaluated[depth + QUIESCE_DEPTH_N] += 1;
     Bitboard key = position->hash;
     PositionInfo infoLookup = TranspositionTable::get(key);
-    if (infoLookup.hash == key && (infoLookup.depth >= (depth + QUIESCE_DEPTH_N - 4))) {
+    if (infoLookup.hash == key && (infoLookup.depth != 0)) {
         return infoLookup.eval;
     }
     if (depth == 0) {
@@ -163,9 +163,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         // limit as ours
         if (score >= beta) {
             PositionInfo info = PositionInfo(position->hash, depth + QUIESCE_DEPTH_N, beta, 0);
-            if (depth > 2) {
-                TranspositionTable::insert(info);
-            }
+            TranspositionTable::insert(info);
             return beta; //  fail hard beta-cutoff
         }
         // if the move found is better than the best score we can achieve update
@@ -177,9 +175,7 @@ Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint
         return EvaluationLiterals::MATE;
     }
     PositionInfo info = PositionInfo(position->hash, depth + QUIESCE_DEPTH_N, alpha, 1);
-    if (depth > 2) {
-        TranspositionTable::insert(info);
-    }
+    TranspositionTable::insert(info);
     return alpha;
 }
 
@@ -245,7 +241,7 @@ SearchInfo search(Position *position, uint16_t depth) {
         }
     }
     uint64_t positions = 0;
-    for (int i = 0; i < (depth + QUIESCE_DEPTH_N); i++) {
+    for (int i = 0; i <= (depth + QUIESCE_DEPTH_N); i++) {
         positions += positionsEvaluated[i];
         std::cout << "Depth" << std::to_string(i) << " " << std::to_string(positionsEvaluated[i])
                   << std::endl;

@@ -23,9 +23,7 @@ class PositionInfo {
         type = typeVal;
     }
 };
-
 class TranspositionTable {
-
   public:
     static std::array<PositionInfo, TRANSPOSITION_TABLE_N> transpositionTable;
     static void init() {
