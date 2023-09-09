@@ -53,9 +53,10 @@ int main(int argc, char **argv) {
             std::cin >> bufDepth;
             innerDepth = std::atoi(bufDepth.c_str());
             SearchInfo bestMove = search(&position, innerDepth);
-            std::cout << "BestMove" << moveGetFrom(bestMove.first).stringify()
-                      << moveGetTo(bestMove.first).stringify() << std::endl
+            std::cout << "BestMove" << bestMove.first.getFrom().stringify()
+                      << bestMove.first.getTo().stringify() << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
+            TranspositionTable::init();
         } else if (input == "m") {
             std::string buf;
             std::cin >> buf;

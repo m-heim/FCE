@@ -96,9 +96,9 @@ inline Evaluation Position::evaluatePosition(void) {
 }
 
 inline void Position::makeMove(Move m) {
-    SquareIndex from = moveGetFrom(m);
-    SquareIndex to = moveGetTo(m);
-    uint8_t flags = moveGetFlags(m);
+    SquareIndex from = m.getFrom();
+    SquareIndex to = m.getTo();
+    uint8_t flags = m.getFlags();
     SquareInfo movingPiece = board[from];
     SquareInfo leavingPiece = board[to];
     if (en_passant != Square::SQUARE_NONE) {
@@ -230,19 +230,18 @@ inline void Position::generatePieceMoves(MoveList &moves) {
         if (en_passant != Square::SQUARE_NONE) {
             Bitboard epBitboard = maskedSquare[en_passant];
             if (theoreticalAttackingMoves & epBitboard) {
-                moves.push_back(encodeMove(from, en_passant, MoveFlags::EN_PASSANT));
+                moves.push_back(Move(from, en_passant, MoveFlags::EN_PASSANT));
             }
         }
         moves.addMoves(from, realAttackingMoves, MoveFlags::CAPTURE);
         Bitboard pushes = pawnPushes[to_move][from] & neitherOursAndTheirs;
         if (pushes) {
             SquareIndex to = get_ls1b_index(pushes);
-            moves.push_back(encodeMove(from, to, MoveFlags::QUIET));
+            moves.push_back(Move(from, to, MoveFlags::QUIET));
 
             Bitboard doublePush = pawnPushes[to_move][to];
             if (doublePush & neitherOursAndTheirs & doublePushRank) {
-                moves.push_back(
-                    encodeMove(from, get_ls1b_index(doublePush), MoveFlags::DOUBLE_PUSH));
+                moves.push_back(Move(from, get_ls1b_index(doublePush), MoveFlags::DOUBLE_PUSH));
             }
         }
         pawns_not_promoting &= unmaskedSquare[from];
@@ -310,8 +309,7 @@ inline void Position::generatePieceMoves(MoveList &moves) {
                 intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
                 if (!intermediate.inCheck(intermediate.to_move) &&
                     !intermediate2.inCheck(intermediate2.to_move)) {
-                    moves.push_back(
-                        encodeMove(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
+                    moves.push_back(Move(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
                 }
             }
         }
@@ -354,7 +352,7 @@ inline void Position::generatePawnMoves(MoveList &moves) {
         if (en_passant != Square::SQUARE_NONE) {
             Bitboard ep = maskedSquare[en_passant];
             if (attacks & ep) {
-                moves.push_back(encodeMove(from, en_passant, MoveFlags::EN_PASSANT));
+                moves.push_back(Move(from, en_passant, MoveFlags::EN_PASSANT));
             }
         }
         Bitboard empty = ~(occupation[opponent] | occupation[to_move]);
@@ -363,9 +361,9 @@ inline void Position::generatePawnMoves(MoveList &moves) {
             SquareIndex to = get_ls1b_index(pushes);
             Bitboard doublePush = pawnPushes[to_move][to];
             if (doublePush & empty & doublePushRank) {
-                moves.push_back(encodeMove(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
+                moves.push_back(Move(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
             }
-            moves.push_back(encodeMove(from, to, MoveFlags::QUIET));
+            moves.push_back(Move(from, to, MoveFlags::QUIET));
             pushes &= unmaskedSquare[to];
         }
         pawns_not_promoting &= unmaskedSquare[from];

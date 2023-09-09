@@ -88,46 +88,6 @@ inline Evaluation Position::evaluateMaterial() {
     return (to_move == Color::WHITE) ? eval : -eval;
 }
 
-Evaluation negaMax(Position position, uint16_t depth) {
-    if (depth == 0 || !position.kingExists()) {
-        return position.evaluate();
-    }
-    Evaluation max = EvaluationLiterals::NEG_INF;
-    MoveList moves;
-    position.generateMoves(moves);
-    for (uint8_t i = 0; i < moves.count; i++) {
-        Position newPos = position;
-        newPos.makeMove(moves.get(i));
-        Evaluation current = -negaMax(newPos, depth - 1);
-        if (current > max) {
-            max = current;
-        }
-    }
-    return max;
-}
-
-Move negaMaxRoot(Position position, uint16_t depth) {
-    if (depth == 0 || !position.kingExists()) {
-        return position.evaluate();
-    }
-    Move bestMove = no_move;
-    MoveList moves;
-    Evaluation max = EvaluationLiterals::NEG_INF;
-    position.generateMoves(moves);
-    for (uint8_t i = 0; i < moves.count; i++) {
-        Position newPos = position;
-        Move move = moves.get(i);
-        newPos.makeMove(move);
-        Evaluation current = -negaMax(newPos, depth - 1);
-        std::cout << current << std::endl;
-        if (current > max) {
-            max = current;
-            bestMove = move;
-        }
-    }
-    return bestMove;
-}
-
 std::array<std::uint64_t, SEARCH_DEPTH_N> positionsEvaluated{0ULL};
 Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depth) {
     // This search is based on the fact that if we can choose between multiple moves and one of
@@ -198,7 +158,7 @@ Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_
     uint8_t legalMoves = 0;
     for (uint8_t index = 0; index < moves.count; index++) {
         Move move = moves.get(index);
-        if (inCheck || moveGetFlags(move) == MoveFlags::CAPTURE) {
+        if (inCheck || move.getFlags() == MoveFlags::CAPTURE) {
             Position capturePos = *position;
             capturePos.makeMove(move);
             if (capturePos.inCheck(capturePos.opponent)) {
@@ -231,9 +191,9 @@ SearchInfo search(Position *position, uint16_t depth) {
         Position newPos = *position;
         Move move = moves.get(index);
         newPos.makeMove(move);
-        std::cout << "Searching move" << moveGetFrom(moves.get(index)).stringify() << " "
-                  << moveGetTo(moves.get(index)).stringify() << " "
-                  << moveGetFlags(moves.get(index)) << std::endl;
+        std::cout << "Searching move" << moves.get(index).getFrom().stringify() << " "
+                  << moves.get(index).getTo().stringify() << " " << moves.get(index).getFlags()
+                  << std::endl;
         Evaluation current = -alphaBeta(&newPos, -beta, -alpha, depth);
         if (current > alpha) {
             alpha = current;

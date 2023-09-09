@@ -5,12 +5,8 @@
 #include <bitboard.hpp>
 #include <cstdint>
 
-// typedefs
-typedef std::uint16_t Move;
-
-// constants
 constexpr uint64_t MOVE_LIMIT_N = 256;
-constexpr Move no_move = 65;
+constexpr uint16_t no_move = 65;
 
 enum MoveFlags : std::uint8_t {
     QUIET,
@@ -26,26 +22,40 @@ enum MoveFlags : std::uint8_t {
     MASK = 0x0F
 };
 
-inline SquareIndex moveGetFrom(Move m) {
-    return (m >> 6) & Square::SQUARE_H8;
-}
-inline SquareIndex moveGetTo(Move m) {
-    return m & Square::SQUARE_H8;
-}
+// typedefs
+class Move {
+  private:
+    std::uint16_t move;
 
-// FIXME
-inline MoveFlags moveGetFlags(Move m) {
-    return static_cast<MoveFlags>(MoveFlags::MASK & (m >> 12));
-}
+  public:
+    Move() {
+        move = 65;
+    }
+    Move(int moveVal) {
+        move = moveVal;
+    }
+    Move(SquareIndex from, SquareIndex to, MoveFlags flags) {
+        move = (from << 6) | (flags << 12) | to;
+    }
+    operator int() const {
+        return move;
+    }
+    SquareIndex getFrom() {
+        return (move >> 6) & Square::SQUARE_H8;
+    }
+    SquareIndex getTo() {
+        return move & Square::SQUARE_H8;
+    }
 
-inline Move encodeMove(SquareIndex from, SquareIndex to, uint8_t flags) {
-    return to | from << 6 | flags << 12;
-}
+    MoveFlags getFlags() {
+        return static_cast<MoveFlags>(MoveFlags::MASK & (move >> 12));
+    }
+};
 
 class MoveList {
   public:
     uint8_t count;
-    std::array<Move, MOVE_LIMIT_N> moves;
+    std::array<Move, MOVE_LIMIT_N> moves{};
     MoveList() {
         count = 0;
     };
@@ -59,16 +69,16 @@ class MoveList {
     inline void addMoves(SquareIndex from, Bitboard board, MoveFlags flags) {
         while (board) {
             SquareIndex to = get_ls1b_index(board);
-            push_back(encodeMove(from, to, flags));
+            push_back(Move(from, to, flags));
             board &= unmaskedSquare[to];
         }
     }
     inline std::string stringify() {
         std::string result;
         for (uint8_t i = 0; i < count; i++) {
-            std::string fromSquare = moveGetFrom(moves[i]).stringify();
-            std::string toSquare = moveGetTo(moves[i]).stringify();
-            MoveFlags flag = moveGetFlags(moves[i]);
+            std::string fromSquare = moves[i].getFrom().stringify();
+            std::string toSquare = moves[i].getTo().stringify();
+            MoveFlags flag = moves[i].getFlags();
             result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + " " +
                           std::to_string(flag) + "\n");
         }
