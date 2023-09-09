@@ -1,9 +1,9 @@
 #pragma once
 #include "magic.hpp"
-#include "square.hpp"
 #include <array>
 #include <bitboard.hpp>
 #include <cstdint>
+#include <square.hpp>
 
 constexpr uint64_t MOVE_LIMIT_N = 256;
 constexpr uint16_t no_move = 65;
