@@ -29,7 +29,6 @@ class Move {
 
   public:
     Move() {
-        move = 65;
     }
     Move(int moveVal) {
         move = moveVal;
@@ -59,21 +58,21 @@ class MoveList {
     MoveList() {
         count = 0;
     };
-    inline Move get(uint8_t index) {
+    Move get(uint8_t index) {
         return moves[index];
     }
-    inline void push_back(Move move) {
+    void push_back(Move move) {
         moves[count] = move;
         count++;
     }
-    inline void addMoves(SquareIndex from, Bitboard board, MoveFlags flags) {
+    void addMoves(SquareIndex from, Bitboard board, MoveFlags flags) {
         while (board) {
             SquareIndex to = get_ls1b_index(board);
             push_back(Move(from, to, flags));
             board &= unmaskedSquare[to];
         }
     }
-    inline std::string stringify() {
+    std::string stringify() {
         std::string result;
         for (uint8_t i = 0; i < count; i++) {
             std::string fromSquare = moves[i].getFrom().stringify();
