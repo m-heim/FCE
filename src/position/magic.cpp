@@ -1,9 +1,10 @@
 #include "magic.hpp"
 #include "chess.hpp"
 #include "square.hpp"
+#include "util.hpp"
 #include <iostream>
 
-// PRIMITIVES
+// PRIMITIVES, these do not require previous initializations
 Bitboard getKnightAttacks(Bitboard board) {
     // Generate all possible knight moves from knights
     return ((board << Direction::NNE | board >> -Direction::SSE) & notFileA) |
@@ -157,8 +158,7 @@ Magic initMagicSquare(SquareIndex index, bool bishop, uint64_t *magicIndex) {
         Bitboard hash = result.getMagicIndex(occupancies[index]);
         highestHash = std::max<Bitboard>(hash, highestHash);
         if (hash > combinations) {
-            std::cerr << "Error in magic initialization" << std::endl;
-            std::exit(1);
+            fce_error("Error in magic initialization", 1);
         }
         startOfBlock[hash] = attacks.at(index);
     }
