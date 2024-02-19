@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <square.hpp>
 
-constexpr uint64_t MOVE_LIMIT_N = 256;
+constexpr uint64_t MOVE_LIMIT_N = 256; // how many moves are stored in the MoveList
 constexpr uint16_t no_move = 65;
 
 enum MoveFlags : std::uint8_t {
