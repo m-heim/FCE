@@ -6,6 +6,9 @@
 #include <iostream>
 #include <square.hpp>
 
+/*
+ @brief Parse a fen from a string, exits on error
+*/
 Position parseFen(const std::string &fen) {
     int start = 0;
     size_t next = fen.find(' ', start);
@@ -86,6 +89,9 @@ Position parseFen(const std::string &fen) {
     return position;
 }
 
+/*
+ @brief read a fen from a file, does not check for validity
+*/
 std::string readFen(const std::string &fenPath) {
     std::ifstream fen_file_stream(fenPath, std::ios::in);
     if (!fen_file_stream.is_open()) {
