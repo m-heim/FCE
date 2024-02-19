@@ -7,3 +7,5 @@ documentation/*
 !documentation/documentation.tex
 !documentation/documentation.pdf
 !documentation/documentation.aux
+html
+latex
