@@ -29,11 +29,11 @@ int main(int argc, char **argv) {
             fen_file.append(optarg);
             break;
         case 'h':
-            std::cout << "fce -f [file] -d [depth]" << std::endl;
+            fce_log(LOG_LEVEL::REGULAR, "fce -f [file] -d [depth]");
             break;
         default:
-            std::cerr << "Please provide an argument -h for more info" << std::endl;
-            exit(2);
+            fce_error("Please provide an argument -h for more info", 2);
+            break;
         }
     }
     std::string fen = readFen(fen_file);
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
     while (true) {
         std::string input;
-        std::cout << "s - search, m - make a move, d - debug, l - eval, e - exit" << std::endl;
+        fce_log(LOG_LEVEL::REGULAR, "s - search, m - make a move, d - debug, l - eval, e - exit");
         std::cin >> input;
         if (input == "s") {
             int innerDepth = 0;
