@@ -9,4 +9,4 @@ enum LOG_LEVEL {
     ERROR,
 };
 
-void fce_log(std::string &message, LOG_LEVEL level);
+void fce_log(LOG_LEVEL level, std::string message);

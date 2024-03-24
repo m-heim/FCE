@@ -1,7 +1,7 @@
 #include "logger.hpp"
 #include <iostream>
 
-void fce_log(std::string &message, LOG_LEVEL level) {
+void fce_log(LOG_LEVEL level, std::string message) {
     std::string prefix;
     if (level == LOG_LEVEL::DEBUG) {
         prefix = "[DEBUG]: ";
@@ -12,5 +12,5 @@ void fce_log(std::string &message, LOG_LEVEL level) {
     } else if (level == LOG_LEVEL::ERROR) {
         prefix = "[ERROR]: ";
     }
-    std::cout << prefix << message;
+    std::cout << prefix << message << std::endl;
 }
