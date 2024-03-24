@@ -1,1 +1,1 @@
-add_executable(magics magics.cpp)
+add_executable(determine_magics magics.cpp)
