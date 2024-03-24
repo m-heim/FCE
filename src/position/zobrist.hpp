@@ -8,7 +8,9 @@
  @brief Allows to hash a position into a 64 Bit number for transposition purposes
  */
 
-constexpr Bitboard ZOBRIST_SEED = fileA | fileH | rank4;
+constexpr Bitboard ZOBRIST_SEED =
+    fileA | fileH |
+    rank4; // choose a random seed, should not matter what is chosen here as long as it is constant
 
 extern std::array<std::array<std::array<Bitboard, Square::SQUARE_COUNT>, Piece::KING + 1>,
                   Color::BLACK + 1>
