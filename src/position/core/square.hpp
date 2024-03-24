@@ -3,8 +3,12 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <util.hpp>
 
-// enumerations
+/**
+ * @brief All squares on the chess board plus the NULL square
+ *
+ */
 enum Square : uint8_t {
     SQUARE_A1,
     SQUARE_B1,
@@ -93,6 +97,10 @@ enum Direction : int8_t {
     WWS = WEST + WEST + SOUTH
 };
 
+/**
+ * @brief a SquareIndex identifies a Square (uint8_t) with some utility functions
+ *
+ */
 class SquareIndex {
   public:
     using Squares = Square;
@@ -117,8 +125,15 @@ class SquareIndex {
     explicit SquareIndex(const std::string &strs) {
         square = ((strs.at(1) - '1') * Square::SQUARE_A2) + (strs.at(0) - 'a');
     }
-    std::string stringify();
-    void print();
+    std::string stringify() {
+        int col = *this % File::FILE_COUNT;
+        int row = *this / Rank::RANK_COUNT;
+        return std::string({(char)(col + 'a'), (char)(row + '1')});
+    }
+
+    void print() {
+        std::cout << this->stringify() << std::endl;
+    }
     static bool validate(const std::string &strs) {
         return strs.length() == 2 &&
                (strs[0] >= 'a' && strs[0] <= 'h' && strs[1] >= '1' && strs[1] <= '8');
@@ -128,7 +143,11 @@ class SquareIndex {
     uint8_t square;
 };
 
-// classes
+/**
+ * @brief A square consists of a piece and a color. It does not have any information about its own
+ * position on the board
+ *
+ */
 class SquareInfo {
   public:
     Color color;
@@ -156,8 +175,7 @@ class SquareInfo {
         } else if (pieceAsChar == 'k' || pieceAsChar == 'K') {
             piece = Piece::KING;
         } else {
-            std::cerr << "Invalid input when converting character to SquareInfo" << std::endl;
-            exit(1);
+            fce_error("Invalid input when converting character to SquareInfo", 1);
         }
     }
 };
