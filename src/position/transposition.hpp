@@ -5,7 +5,7 @@
 #include <chess.hpp>
 #include <cstdint>
 
-constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 128;
+constexpr uint64_t TRANSPOSITION_TABLE_N = 1024 * 1024 * 128; // transposition table entries
 
 class PositionInfo {
   public:
@@ -23,6 +23,12 @@ class PositionInfo {
         type = typeVal;
     }
 };
+
+/**
+ * @brief data structure that maps hash modulus table size to PositionInfo for fast access to
+ * position evaluation
+ *
+ */
 class TranspositionTable {
   public:
     static std::array<PositionInfo, TRANSPOSITION_TABLE_N> transpositionTable;
