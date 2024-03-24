@@ -4,19 +4,19 @@
 #include <fen.hpp>
 #include <fstream>
 #include <iostream>
+#include <logger.hpp>
 #include <position.hpp>
 #include <transposition.hpp>
-#include <vector>
 #include <zobrist.hpp>
 
 int main(int argc, char **argv) {
-    std::cout << "Fce is starting now ..." << std::endl;
+    fce_log(LOG_LEVEL::DEBUG, "Fce is starting now ...");
     initGlobals();
-    std::cout << "Initialized precomputed patterns." << std::endl;
+    fce_log(LOG_LEVEL::DEBUG, "Initialized precomputed patterns.");
     initZobrist(ZOBRIST_SEED);
-    std::cout << "Initialized zobrist coefficients." << std::endl;
+    fce_log(LOG_LEVEL::DEBUG, "Initialized zobrist coefficients.");
     TranspositionTable::init();
-    std::cout << "Initialized transposition table." << std::endl;
+    fce_log(LOG_LEVEL::DEBUG, "Initialized transposition table.");
     char option = 'h';
     uint8_t depth = 0;
     std::string fen_file;
