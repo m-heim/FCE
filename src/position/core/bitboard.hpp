@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <random>
 #include <strings.h>
-#include <vector>
 
 // typedefs
 typedef std::uint64_t Bitboard;
