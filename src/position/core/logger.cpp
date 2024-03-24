@@ -11,6 +11,8 @@ void fce_log(LOG_LEVEL level, std::string message) {
         prefix = "[FAIL]: ";
     } else if (level == LOG_LEVEL::ERROR) {
         prefix = "[ERROR]: ";
+    } else if (level == LOG_LEVEL::REGULAR) {
+        prefix = "";
     }
     std::cout << prefix << message << std::endl;
 }
