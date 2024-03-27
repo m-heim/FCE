@@ -1,5 +1,4 @@
 #pragma once
-#include "position.hpp"
 #include <array>
 #include <bitboard.hpp>
 #include <chess.hpp>
