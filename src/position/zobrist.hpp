@@ -21,4 +21,4 @@ extern std::array<Bitboard, File::FILE_COUNT> zobristEnPassant;
 extern std::array<std::array<std::array<Bitboard, 2>, Castle::CASTLE_COUNT>, Color::BLACK + 1>
     zobristCastle;
 
-void initZobrist(Bitboard seed);
+void initZobrist();

@@ -8,9 +8,9 @@ std::array<Bitboard, File::FILE_COUNT> zobristEnPassant;
 std::array<std::array<std::array<Bitboard, 2>, Castle::CASTLE_COUNT>, Color::BLACK + 1>
     zobristCastle;
 
-void initZobrist(Bitboard seed) {
+void initZobrist() {
     // reseed to make sure we get the same zobrist coefficients during every execution
-    reseedBitboardEngine(seed);
+    reseedBitboardEngine(ZOBRIST_SEED);
     for (uint8_t color = Color::WHITE; color <= Color::BLACK; color++) {
         for (uint8_t piece = 0; piece <= Piece::KING; piece++) {
             for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {

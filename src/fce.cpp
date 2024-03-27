@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     fce_log(LOG_LEVEL::DEBUG, "Fce is starting now ...");
     initGlobals();
     fce_log(LOG_LEVEL::DEBUG, "Initialized precomputed patterns.");
-    initZobrist(ZOBRIST_SEED);
+    initZobrist();
     fce_log(LOG_LEVEL::DEBUG, "Initialized zobrist coefficients.");
     TranspositionTable::init();
     fce_log(LOG_LEVEL::DEBUG, "Initialized transposition table.");
