@@ -2,11 +2,12 @@
 #include <iostream>
 #include <sstream>
 
+/**
+ * @brief Return an array of all possible subsets of bitboard positions based on a mask
+ * @note https://stackoverflow.com/a/68061886,
+ * https://www.chessprogramming.org/Traversing_Subsets_of_a_Set, Marcel van Kervinck Chess
+ */
 std::array<Bitboard, BITBOARD_SUBSETS_N> getBitboardSubsets(Bitboard mask) {
-    // https://stackoverflow.com/a/68061886
-    // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
-    // use carry bit while masking all non relevant bits to iterate through
-    // all subsets: Marcel van Kervinck Chess
     std::array<Bitboard, BITBOARD_SUBSETS_N> result{};
     uint16_t index = 0;
     for (Bitboard current = 0;;) {
@@ -44,7 +45,7 @@ void printBitboard(Bitboard board) {
 std::mt19937_64 randomNumberEngine(BITBOARD_RANDOM_NUMBER_SEED);
 std::uniform_int_distribution<Bitboard> randomBitboardDistribution(emptyBitboard, fullBitboard);
 
-void reseedBitboardEngine(uint16_t seed) {
+void reseedBitboardEngine(Bitboard seed) {
     randomNumberEngine.seed(seed);
 }
 Bitboard getRandomBitboard() {
