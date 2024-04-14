@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Position\n" << position.stringify_board() << std::endl;
 
-    while (true) {
+    while (true) { // menu loop
         std::string input;
         fce_log(LOG_LEVEL::REGULAR, "s - search, m - make a move, d - debug, l - eval, e - exit");
         std::cin >> input;
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
             std::cout << "BestMove" << bestMove.first.getFrom().stringify()
                       << bestMove.first.getTo().stringify() << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
-            TranspositionTable::init();
+            TranspositionTable::init(); // reset transposition table
         } else if (input == "m") {
             std::string buf;
             std::cin >> buf;
