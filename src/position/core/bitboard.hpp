@@ -5,9 +5,7 @@
 #include <cstdint>
 #include <random>
 #include <strings.h>
-
-// typedefs
-typedef std::uint64_t Bitboard;
+#include <core.hpp>
 
 // constants
 constexpr uint64_t BITBOARD_SUBSETS_N = 4096;

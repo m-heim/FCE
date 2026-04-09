@@ -1,382 +1,69 @@
 #pragma once
-#include "magic.hpp"
+#include "eval.hpp"
+#include "hash.hpp"
 #include "move.hpp"
-#include "zobrist.hpp"
-#include <array>
 #include <bitboard.hpp>
 #include <chess.hpp>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <square.hpp>
-#include <vector>
 
 // typedefs
 typedef std::pair<Move, Evaluation> SearchInfo;
 
-enum EvaluationLiterals : Evaluation {
-    NEG_INF = -100000000000,
-    MATE = NEG_INF + 1000,
-    EVEN = 0,
-    POS_INF = 100000000000,
-
-    PAWN_VAL = 100,
-    KNIGHT_VAL = 300,
-    BISHOP_VAL = 315,
-    ROOK_VAL = 450,
-    QUEEN_VAL = 900,
-    KING_VAL = 2000000,
-
-    MULTIPLE_PAWN_VAL = -50,
-    MULTIPLE_BISHOP_VAL = 150,
-    CENTER_PAWN_VAL = 100,
-};
-
 // constants
-constexpr uint16_t SEARCH_DEPTH_N = 1000;
+constexpr uint16_t SEARCH_DEPTH_N = 256;
 constexpr uint16_t QUIESCE_DEPTH_N = 100;
-
-constexpr std::array<Evaluation, Piece::KING + 1> evaluations = {
-    EvaluationLiterals::PAWN_VAL, EvaluationLiterals::KNIGHT_VAL, EvaluationLiterals::BISHOP_VAL,
-    EvaluationLiterals::ROOK_VAL, EvaluationLiterals::QUEEN_VAL,  EvaluationLiterals::KING_VAL};
 
 class Position {
   public:
-    std::array<SquareInfo, Square::SQUARE_COUNT> board;
-    std::array<std::array<Bitboard, Piece::PIECE_TOP + 1>, Color::COLOR_TOP + 1> bitboards;
-    std::array<Bitboard, Color::COLOR_TOP + 1> occupation;
-    std::array<std::array<bool, Castle::CASTLE_COUNT>, Color::BLACK + 1> castle_rights;
-    Color to_move;
-    Color opponent;
-    SquareIndex en_passant;
-    uint16_t plies;
-    uint16_t plies_since_capture;
-    Bitboard hash;
-    void setSquare(SquareIndex square, Color color, Piece piece);
-    std::string stringify_board();
-    void print_board();
-    Evaluation evaluate(void);
-    Evaluation evaluateMaterial(void);
-    Evaluation evaluatePosition(void);
-    void makeMove(Move m);
-    inline bool kingExists() {
-        return bitboards[to_move][Piece::KING] != 0;
+    Position();
+    Position(TranspositionTable *tt, Zobrist *z);
+    ~Position() {
     }
+    SquareInfoBoard board; // array of all squares on the board, each square has a piece and a color
+    std::array<PiecesBitboards, Color::COLOR_COUNT_VALID + 1>
+        bitboards; // bitboards[color][piece] gives a bitboard of all pieces of the given color and
+                   // type
+    std::array<Bitboard, Color::COLOR_COUNT_VALID + 1>
+        occupation; // occupation[color] gives a bitboard of all pieces of the given color
+    std::array<CastleRights, Castle::CASTLE_COUNT_VALID + 1> castle_rights;
+    Color playerColor;         // side to move
+    Color opponentPlayerColor; // opponent of side to move
+    SquareIndex en_passant;    // if en passant is possible, this is the square that can be captured
+                               // on, otherwise it is SQUARE_NONE
+    SquareIndex
+        previous_en_passant; // the en passant square before the last move, used for unmaking moves
+    SquareInfo previousSquareInfo; // the piece and color of the square before the last move, used
+                                   // for unmaking moves
+    uint16_t previousPliesSinceCapture; // the number of plies since the last capture before the
+                                        // last move, used for unmaking moves
+    uint16_t plies;                     // how many plies have been played in the game so far
+    uint16_t plies_since_capture; // how many plies have been played since the last capture, used
+                                  // for 50 move rule
+    Bitboard hash;                // zobrist hash of the position, used for transposition table
+    void setSquare(SquareIndex square, Color color,
+                   Piece piece); // sets the square to the given piece and color, also updates
+                                 // bitboards and occupation
+    std::string
+    stringify_board();         // returns a string representation of the board, used for debugging
+    void print_board();        // prints the board to the console, used for debugging
+    Evaluation evaluate(void); // evaluates the position
+    Evaluation evaluateMaterial(void); // evaluates the material balance of the position
+    Evaluation evaluatePosition(
+        void); // evaluates the position based on piece placement and other factors, not material
+    TranspositionTable
+        *transpositionTable; // transposition table for storing previously evaluated positions
+    Zobrist *zobrist;        // zobrist hashing for fast position hashing
+    void makeMove(Move m,
+                  UndoInfo &undoInfo);  // makes the move on the position, also updates bitboards,
+                                        // occupation, castling rights, en passant square and hash
+    void unmakeMove(UndoInfo undoInfo); // unmakes the move on the position, also updates bitboards,
+                                        // occupation, castling rights, en passant square and hash
+    bool kingExists();
     void generatePawnMoves(MoveList &moves);
-    void generatePieceMoves(MoveList &moves);
-    void generateMoves(MoveList &moves);
+    void generatePieceMoves(MoveList &moves, MoveList &captures);
+    void generateMoves(MoveList &moves, MoveList &captures);
     bool inCheck(Color side);
     Bitboard computeHash();
-    Position() {
-        SquareInfo empty = SquareInfo(Color::NO_COLOR, Piece::NO_PIECE);
-        for (SquareIndex square = Square::SQUARE_A1; square <= Square::SQUARE_H8; square++) {
-            board[square] = empty;
-        }
-        memset(&bitboards, 0, sizeof(bitboards));
-        occupation[Color::WHITE] = 0ULL;
-        occupation[Color::BLACK] = 0ULL;
-        occupation[Color::NO_COLOR] = 0ULL;
-        plies = 0;
-        plies_since_capture = 0;
-        to_move = Color::WHITE;
-        opponent = Color::BLACK;
-        this->en_passant = SquareIndex::Squares::SQUARE_NONE;
-    }
 };
-
-Evaluation negaMax(Position position, uint16_t depth);
-Move negaMaxRoot(Position position, uint16_t depth);
-Evaluation alphaBeta(Position *position, Evaluation alpha, Evaluation beta, uint16_t depth);
-SearchInfo search(Position *position, uint16_t depth);
-Evaluation quiesce(Position *position, Evaluation alpha, Evaluation beta, uint8_t depth);
-
-inline Evaluation Position::evaluatePosition(void) {
-    Evaluation eval = 0;
-    return eval;
-}
-
-inline void Position::makeMove(Move m) {
-    SquareIndex from = m.getFrom();
-    SquareIndex to = m.getTo();
-    uint8_t flags = m.getFlags();
-    SquareInfo movingPiece = board[from];
-    SquareInfo leavingPiece = board[to];
-    if (en_passant != Square::SQUARE_NONE) {
-        uint8_t file = en_passant % 8;
-        hash ^= zobristEnPassant[file];
-        en_passant = Square::SQUARE_NONE;
-    }
-    // while castling is allowed and the king doesnt move, keep this
-    if (movingPiece.piece == Piece::KING) {
-        if (castle_rights[to_move][Castle::QUEENSIDE]) {
-            castle_rights[to_move][Castle::QUEENSIDE] = false;
-            hash ^= zobristCastle[to_move][Castle::QUEENSIDE][true];
-        } else if (castle_rights[to_move][Castle::KINGSIDE]) {
-            castle_rights[to_move][Castle::KINGSIDE] = false;
-            hash ^= zobristCastle[to_move][Castle::KINGSIDE][true];
-        }
-    } else if (movingPiece.piece == Piece::ROOK) {
-        SquareIndex queenside = Square::SQUARE_A1 + ((bool)to_move * (int)Square::SQUARE_A8);
-        SquareIndex kingside = Square::SQUARE_H1 + ((bool)to_move * (int)Square::SQUARE_A8);
-        if (from == queenside && castle_rights[to_move][Castle::QUEENSIDE]) {
-            castle_rights[to_move][Castle::QUEENSIDE] = false;
-            hash ^= zobristCastle[to_move][Castle::QUEENSIDE][true];
-        } else if (from == kingside && castle_rights[to_move][Castle::KINGSIDE]) {
-            castle_rights[to_move][Castle::KINGSIDE] = false;
-            hash ^= zobristCastle[to_move][Castle::KINGSIDE][true];
-        }
-    } else if (leavingPiece.piece == Piece::ROOK) {
-        SquareIndex queenside = Square::SQUARE_A1 + ((bool)opponent * (int)Square::SQUARE_A8);
-        SquareIndex kingside = Square::SQUARE_H1 + ((bool)opponent * (int)Square::SQUARE_A8);
-        if (to == queenside && castle_rights[opponent][Castle::QUEENSIDE]) {
-            castle_rights[opponent][Castle::QUEENSIDE] = false;
-            hash ^= zobristCastle[opponent][Castle::QUEENSIDE][true];
-        } else if (to == kingside && castle_rights[opponent][Castle::KINGSIDE]) {
-            castle_rights[opponent][Castle::KINGSIDE] = false;
-            hash ^= zobristCastle[opponent][Castle::KINGSIDE][true];
-        }
-    }
-    if (flags == MoveFlags::QUIET) {
-        setSquare(to, movingPiece.color, movingPiece.piece);
-        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][movingPiece.piece][to];
-        plies_since_capture += 1;
-    } else if (flags == MoveFlags::DOUBLE_PUSH) {
-        setSquare(to, movingPiece.color, movingPiece.piece);
-        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][movingPiece.piece][to];
-        en_passant = (from + to) / 2;
-        hash ^= zobristEnPassant[en_passant % 8];
-        plies_since_capture += 1;
-    } else if (flags == MoveFlags::CAPTURE) {
-
-        setSquare(to, movingPiece.color, movingPiece.piece);
-        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][movingPiece.piece][to];
-        hash ^= zobristKeys[opponent][leavingPiece.piece][to];
-        plies_since_capture = 0;
-    } else if (flags == MoveFlags::CASTLE_KINGSIDE) {
-        setSquare(to, movingPiece.color, Piece::KING);
-        setSquare(from + Direction::EAST, movingPiece.color, Piece::ROOK);
-        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        setSquare(to + Direction::EAST, Color::NO_COLOR, Piece::NO_PIECE);
-        hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][Piece::ROOK][to + Direction::EAST];
-        hash ^= zobristKeys[to_move][Piece::ROOK][to + Direction::WEST];
-        hash ^= zobristKeys[to_move][movingPiece.piece][to];
-        plies_since_capture += 1;
-    } else if (flags == MoveFlags::EN_PASSANT) {
-        Offset epOpponent = from;
-        if (to > from) {
-            // WHITE
-            if (to == (from + Direction::NORTH_WEST)) {
-                epOpponent -= 1;
-            } else {
-                epOpponent += 1;
-            }
-        } else {
-            if (to == (from + Direction::SOUTH_WEST)) {
-                epOpponent -= 1;
-            } else {
-                epOpponent += 1;
-            }
-        }
-        setSquare(to, movingPiece.color, movingPiece.piece);
-        setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-        setSquare(epOpponent, Color::NO_COLOR, Piece::NO_PIECE);
-        hash ^= zobristKeys[to_move][movingPiece.piece][from];
-        hash ^= zobristKeys[to_move][movingPiece.piece][to];
-        hash ^= zobristKeys[opponent][leavingPiece.piece][epOpponent];
-        plies_since_capture = 0;
-    }
-    hash ^= zobristSide;
-    plies += 1;
-    opponent = to_move;
-    to_move = (to_move == Color::WHITE ? Color::BLACK : Color::WHITE);
-    return;
-}
-
-inline void Position::generatePieceMoves(MoveList &moves) {
-    Bitboard ours = occupation[to_move];
-    Bitboard theirs = occupation[opponent];
-    Bitboard oursOrTheirs = ours | theirs;
-    Bitboard neitherOursAndTheirs = ~oursOrTheirs;
-    Bitboard knights = bitboards[to_move][Piece::KNIGHT];
-    Bitboard bishop = bitboards[to_move][Piece::BISHOP];
-    Bitboard rook = bitboards[to_move][Piece::ROOK];
-    Bitboard queen = bitboards[to_move][Piece::QUEEN];
-    Bitboard king = bitboards[to_move][Piece::KING];
-
-    Bitboard pawns = bitboards[to_move][Piece::PAWN];
-    Bitboard pawns_promoting;
-    Bitboard pawns_not_promoting;
-    Bitboard doublePushRank;
-    if (to_move == Color::WHITE) {
-        pawns_not_promoting = pawns & notRank7;
-        pawns_promoting = pawns & rank7;
-        doublePushRank = rank4;
-    } else {
-        pawns_not_promoting = pawns & notRank2;
-        pawns_promoting = pawns & rank2;
-        doublePushRank = rank5;
-    }
-    while (pawns_not_promoting) {
-        SquareIndex from = get_ls1b_index(pawns_not_promoting);
-        Bitboard theoreticalAttackingMoves = pawnAttacks[to_move][from];
-        Bitboard realAttackingMoves = theirs & theoreticalAttackingMoves;
-        if (en_passant != Square::SQUARE_NONE) {
-            Bitboard epBitboard = maskedSquare[en_passant];
-            if (theoreticalAttackingMoves & epBitboard) {
-                moves.push_back(Move(from, en_passant, MoveFlags::EN_PASSANT));
-            }
-        }
-        moves.addMoves(from, realAttackingMoves, MoveFlags::CAPTURE);
-        Bitboard pushes = pawnPushes[to_move][from] & neitherOursAndTheirs;
-        if (pushes) {
-            SquareIndex to = get_ls1b_index(pushes);
-            moves.push_back(Move(from, to, MoveFlags::QUIET));
-
-            Bitboard doublePush = pawnPushes[to_move][to];
-            if (doublePush & neitherOursAndTheirs & doublePushRank) {
-                moves.push_back(Move(from, get_ls1b_index(doublePush), MoveFlags::DOUBLE_PUSH));
-            }
-        }
-        pawns_not_promoting &= unmaskedSquare[from];
-    }
-    while (pawns_promoting) {
-        SquareIndex from = get_ls1b_index(pawns_promoting);
-        Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
-        Bitboard pushes = neitherOursAndTheirs & pawnPushes[to_move][from];
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, pushes, MoveFlags::QUIET);
-        pawns_promoting &= unmaskedSquare[from];
-    }
-    while (bishop) {
-        SquareIndex from = get_ls1b_index(bishop);
-        Bitboard result = bishopMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        bishop &= unmaskedSquare[from];
-    }
-    while (knights) {
-        SquareIndex from = get_ls1b_index(knights);
-        Bitboard attacks = knightAttacks[from] & theirs;
-        Bitboard non_attacks = knightAttacks[from] & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
-        knights &= unmaskedSquare[from];
-    }
-    while (rook) {
-        SquareIndex from = get_ls1b_index(rook);
-        Bitboard result = rookMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        rook &= unmaskedSquare[from];
-    }
-    while (queen) {
-        SquareIndex from = get_ls1b_index(queen);
-        Bitboard result =
-            rookMagics[from].getAttack(oursOrTheirs) | bishopMagics[from].getAttack(oursOrTheirs);
-        Bitboard attacks = result & theirs;
-        Bitboard quiet = result & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, quiet, MoveFlags::QUIET);
-        queen &= unmaskedSquare[from];
-    }
-    if (king) {
-        SquareIndex from = get_ls1b_index(king);
-        Bitboard attacks = kingAttacks[from] & theirs;
-        Bitboard non_attacks = kingAttacks[from] & neitherOursAndTheirs;
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        moves.addMoves(from, non_attacks, MoveFlags::QUIET);
-        if (castle_rights[to_move][Castle::KINGSIDE]) {
-            Offset moveDir = Direction::EAST;
-            Offset moveDirTarget = moveDir + Direction::EAST;
-            if (((king << moveDir) & neitherOursAndTheirs) &&
-                ((king << moveDirTarget) & neitherOursAndTheirs) && !inCheck(to_move)) {
-                Position intermediate = *this;
-                intermediate.setSquare(from + moveDir, to_move, Piece::KING);
-                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-                Position intermediate2 = *this;
-                intermediate.setSquare(from + moveDirTarget, to_move, Piece::KING);
-                intermediate.setSquare(from, Color::NO_COLOR, Piece::NO_PIECE);
-                if (!intermediate.inCheck(intermediate.to_move) &&
-                    !intermediate2.inCheck(intermediate2.to_move)) {
-                    moves.push_back(Move(from, from + moveDirTarget, MoveFlags::CASTLE_KINGSIDE));
-                }
-            }
-        }
-    }
-}
-
-inline bool Position::inCheck(Color side) {
-    Color opponentSide = (side == Color::BLACK ? Color::WHITE : Color::BLACK);
-    SquareIndex square = get_ls1b_index(bitboards[side][Piece::KING]);
-    Bitboard oursAndTheirs = occupation[Color::WHITE] | occupation[Color::BLACK];
-    auto opponentPieces = bitboards[opponentSide];
-    Bitboard knight = knightAttacks[square] & opponentPieces[Piece::KNIGHT];
-    Bitboard rook = rookMagics.at(square).getAttack(oursAndTheirs) &
-                    (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::ROOK]);
-    Bitboard bishop = bishopMagics.at(square).getAttack(oursAndTheirs) &
-                      (opponentPieces[Piece::QUEEN] | opponentPieces[Piece::BISHOP]);
-    Bitboard pawn = pawnAttacks[side][square] & opponentPieces[Piece::PAWN];
-    Bitboard king = kingAttacks[square] & opponentPieces[Piece::KING];
-    return (knight | rook | bishop | pawn | king) > emptyBitboard;
-}
-
-inline void Position::generatePawnMoves(MoveList &moves) {
-    Bitboard pawns = bitboards[to_move][Piece::PAWN];
-    Bitboard pawns_not_promoting;
-    Bitboard pawns_promoting;
-    Bitboard doublePushRank;
-    if (to_move == Color::WHITE) {
-        pawns_not_promoting = pawns & notRank7;
-        pawns_promoting = pawns & rank7;
-        doublePushRank = rank4;
-    } else {
-        pawns_not_promoting = pawns & notRank2;
-        pawns_promoting = pawns & rank2;
-        doublePushRank = rank5;
-    }
-    while (pawns_not_promoting) {
-        SquareIndex from = get_ls1b_index(pawns_not_promoting);
-        Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        if (en_passant != Square::SQUARE_NONE) {
-            Bitboard ep = maskedSquare[en_passant];
-            if (attacks & ep) {
-                moves.push_back(Move(from, en_passant, MoveFlags::EN_PASSANT));
-            }
-        }
-        Bitboard empty = ~(occupation[opponent] | occupation[to_move]);
-        Bitboard pushes = pawnPushes[to_move][from] & empty;
-        while (pushes) {
-            SquareIndex to = get_ls1b_index(pushes);
-            Bitboard doublePush = pawnPushes[to_move][to];
-            if (doublePush & empty & doublePushRank) {
-                moves.push_back(Move(from, get_ls1b_index(doublePush), MoveFlags::QUIET));
-            }
-            moves.push_back(Move(from, to, MoveFlags::QUIET));
-            pushes &= unmaskedSquare[to];
-        }
-        pawns_not_promoting &= unmaskedSquare[from];
-    }
-    while (pawns_promoting) {
-        SquareIndex from = get_ls1b_index(pawns_promoting);
-        Bitboard attacks = occupation[opponent] & pawnAttacks[to_move][from];
-        moves.addMoves(from, attacks, MoveFlags::CAPTURE);
-        pawns_promoting &= unmaskedSquare[from];
-    }
-}
-
-inline void Position::generateMoves(MoveList &moves) {
-    generatePieceMoves(moves);
-    // generatePawnMoves(moves);
-}

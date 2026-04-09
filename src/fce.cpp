@@ -1,24 +1,20 @@
+#include "engine.hpp"
+#include "position/hash.hpp"
 #include <bitboard.hpp>
 #include <bits/getopt_core.h>
 #include <chess.hpp>
 #include <fen.hpp>
-#include <fstream>
+#include <hash.hpp>
 #include <iostream>
 #include <logger.hpp>
 #include <position.hpp>
-#include <transposition.hpp>
-#include <zobrist.hpp>
 
 int main(int argc, char **argv) {
     fce_log(LOG_LEVEL::DEBUG, "Fce is starting now ...");
     initGlobals();
     fce_log(LOG_LEVEL::DEBUG, "Initialized precomputed patterns.");
-    initZobrist();
-    fce_log(LOG_LEVEL::DEBUG, "Initialized zobrist coefficients.");
-    TranspositionTable::init();
-    fce_log(LOG_LEVEL::DEBUG, "Initialized transposition table.");
     char option = 'h';
-    uint8_t depth = 0;
+    int16_t depth = -1;
     std::string fen_file;
     while ((option = (char)getopt(argc, argv, "d:f:h")) != -1) {
         switch (option) {
@@ -36,11 +32,22 @@ int main(int argc, char **argv) {
             break;
         }
     }
-    std::string fen = readFen(fen_file);
-
-    Position position = parseFen(fen);
+    TranspositionTable transpositionTable = TranspositionTable(TRANSPOSITION_TABLE_N_PRESET);
+    fce_log(LOG_LEVEL::DEBUG, "Initialized transposition table.");
+    Zobrist z = Zobrist();
+    fce_log(LOG_LEVEL::DEBUG, "Initialized zobrist coefficients.");
+    Position position(&transpositionTable, &z);
+    parseFen(readFen(fen_file), position);
 
     std::cout << "Position\n" << position.stringify_board() << std::endl;
+    EngineInstance engine;
+    if (depth != -1) {
+        SearchInfo bestMove = engine.iterativeDeepeningSearch(fen_file, depth);
+        std::cout << "BestMove" << bestMove.first.getFrom().stringify()
+                  << bestMove.first.getTo().stringify() << std::endl
+                  << "Eval" << std::to_string(bestMove.second) << std::endl;
+        return 0;
+    }
 
     while (true) { // menu loop
         std::string input;
@@ -52,11 +59,10 @@ int main(int argc, char **argv) {
             std::cout << "depth" << std::endl;
             std::cin >> bufDepth;
             innerDepth = std::atoi(bufDepth.c_str());
-            SearchInfo bestMove = search(&position, innerDepth);
+            SearchInfo bestMove = engine.search(position, innerDepth);
             std::cout << "BestMove" << bestMove.first.getFrom().stringify()
                       << bestMove.first.getTo().stringify() << std::endl
                       << "Eval" << std::to_string(bestMove.second) << std::endl;
-            TranspositionTable::init(); // reset transposition table
         } else if (input == "m") {
             std::string buf;
             std::cin >> buf;
@@ -67,8 +73,8 @@ int main(int argc, char **argv) {
             std::cout << "Depth:" << std::endl;
             std::cin >> buf;
             depth = std::atoi(buf.c_str());
-            Evaluation eval = alphaBeta(&position, EvaluationLiterals::NEG_INF,
-                                        EvaluationLiterals::POS_INF, depth);
+            Evaluation eval = engine.alphaBeta(position, EvaluationLiterals::NEG_INF,
+                                               EvaluationLiterals::POS_INF, depth, 0);
             std::cout << std::to_string(eval) << std::endl;
         } else if (input == "d") {
             std::cout << "n - knight attacks, m - moves, b - bishop magics, r - rook magics"
@@ -78,9 +84,9 @@ int main(int argc, char **argv) {
             if (buf == "n") {
                 printKnightAttacks();
             } else if (buf == "m") {
-                MoveList moves_debug;
-                position.generateMoves(moves_debug);
-                std::cout << moves_debug.stringify() << std::endl;
+                MoveList moves_debug[2];
+                position.generateMoves(moves_debug[0], moves_debug[1]);
+                std::cout << moves_debug[0].stringify() << std::endl;
 
             } else if (buf == "b") {
                 std::string squareBuf;

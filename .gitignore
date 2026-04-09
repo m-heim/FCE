@@ -1,6 +1,7 @@
 .cache
 .vscode/*
 build
+build_release
 .vscode/launch.json
 gmon.out
 documentation/*

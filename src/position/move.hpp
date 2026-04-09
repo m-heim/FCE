@@ -1,4 +1,5 @@
 #pragma once
+#include "core.hpp"
 #include "magic.hpp"
 #include <array>
 #include <bitboard.hpp>
@@ -19,6 +20,10 @@ enum MoveFlags : std::uint8_t {
     PROMOTE_ROOK = 9,
     PROMOTE_BISHOP = 10,
     PROMOTE_KNIGHT = 11,
+    MOVEFLAGS_BOTTOM = QUIET,
+    MOVEFLAGS_TOP = PROMOTE_KNIGHT,
+    MOVEFLAGS_COUNT_VALID = MOVEFLAGS_TOP - MOVEFLAGS_BOTTOM + 1,
+    NULL_MOVE = 12,
     MASK = 0x0F
 };
 
@@ -30,8 +35,7 @@ class Move {
   public:
     Move() {
     }
-    Move(int moveVal) {
-        move = moveVal;
+    Move(uint16_t moveVal) : move(moveVal) {
     }
     Move(SquareIndex from, SquareIndex to, MoveFlags flags) {
         move = (from << 6) | (flags << 12) | to;
@@ -49,17 +53,63 @@ class Move {
     MoveFlags getFlags() {
         return static_cast<MoveFlags>(MoveFlags::MASK & (move >> 12));
     }
+    std::string stringify() {
+        std::string fromSquare = getFrom().stringify();
+        std::string toSquare = getTo().stringify();
+        MoveFlags flag = getFlags();
+        std::string flagString;
+        switch (flag) {
+        case MoveFlags::QUIET:
+            flagString = "QUIET";
+            break;
+        case MoveFlags::CAPTURE:
+            flagString = "CAPTURE";
+            break;
+        case MoveFlags::DOUBLE_PUSH:
+            flagString = "DOUBLE_PUSH";
+            break;
+        case MoveFlags::EN_PASSANT:
+            flagString = "EN_PASSANT";
+            break;
+        case MoveFlags::CASTLE_QUEENSIDE:
+            flagString = "CASTLE_QUEENSIDE";
+            break;
+        case MoveFlags::CASTLE_KINGSIDE:
+            flagString = "CASTLE_KINGSIDE";
+            break;
+        case MoveFlags::PROMOTE_QUEEN:
+            flagString = "PROMOTE_QUEEN";
+            break;
+        case MoveFlags::PROMOTE_ROOK:
+            flagString = "PROMOTE_ROOK";
+            break;
+        case MoveFlags::PROMOTE_BISHOP:
+            flagString = "PROMOTE_BISHOP";
+            break;
+        case MoveFlags::PROMOTE_KNIGHT:
+            flagString = "PROMOTE_KNIGHT";
+            break;
+        default:
+            flagString = "?";
+            break;
+        }
+        return fromSquare + " " + toSquare + " " + flagString;
+    }
 };
 
 class MoveList {
   public:
     uint8_t count;
     std::array<Move, MOVE_LIMIT_N> moves{};
-    MoveList() {
-        count = 0;
-    };
-    Move get(uint8_t index) {
+    MoveList() : count(0){};
+    const Move &get(uint8_t index) {
         return moves[index];
+    }
+    const Move &operator[](uint8_t index) {
+        return moves[index];
+    }
+    void swap(uint8_t index1, uint8_t index2) {
+        std::swap(moves[index1], moves[index2]);
     }
     void push_back(Move move) {
         moves[count] = move;
@@ -72,15 +122,16 @@ class MoveList {
             board &= unmaskedSquare[to];
         }
     }
-    std::string stringify() {
-        std::string result;
-        for (uint8_t i = 0; i < count; i++) {
-            std::string fromSquare = moves[i].getFrom().stringify();
-            std::string toSquare = moves[i].getTo().stringify();
-            MoveFlags flag = moves[i].getFlags();
-            result.append(std::to_string(i) + " " + fromSquare + " " + toSquare + " " +
-                          std::to_string(flag) + "\n");
-        }
-        return result;
-    }
+    std::string stringify();
+};
+
+class UndoInfo {
+  public:
+    Bitboard hash;
+    Move move;
+    SquareIndex en_passant;
+    bool castle_rights[2][2];
+    uint8_t plies_since_capture;
+    Piece previousPiece; // if the move was a capture, this is the piece that was captured,
+                         // otherwise it is NO_PIECE
 };
